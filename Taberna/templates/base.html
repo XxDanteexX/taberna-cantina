@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Taberna{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+    }
+    .navbar {
+        background-color: #1f1f1f !important;
+        border-bottom: 2px solid #2d3748;
+    }
+    .card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
+    .card-popular {
+        border: 1px solid #f59e0b !important;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+    .badge-categoria {
+        background-color: #2b4c7e;
+        color: #e0e0e0;
+        font-size: 0.8rem;
+    }
+    .price-tag {
+        color: #4ade80;
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    .stock-tag {
+        color: #a0aec0;
+        font-size: 0.85rem;
+    }
+    .nav-pills .nav-link {
+        color: #a0aec0;
+        background-color: #252525;
+        border: 1px solid #333;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #2b4c7e;
+        color: #ffffff;
+        border-color: #2b4c7e;
+    }
+    .category-info-box {
+        background-color: #1a2332;
+        border-left: 4px solid #3b82f6;
+        border-radius: 8px;
+    }
+    
+    /* Estilização dos Inputs e Placeholders */
+    .search-input, .form-control {
+        background-color: #2b2b2b !important;
+        border: 1px solid #444 !important;
+        color: #ffffff !important;
+    }
+    .search-input::placeholder, .form-control::placeholder {
+        color: #a0aec0 !important;
+        opacity: 1;
+    }
+    .form-control:focus, .search-input:focus {
+        background-color: #333 !important;
+        color: #ffffff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.4) !important;
+    }
+
+    .btn-primary {
+        background-color: #2b4c7e;
+        border-color: #2b4c7e;
+    }
+    .btn-primary:hover {
+        background-color: #1d3557;
+        border-color: #1d3557;
+    }
+    .login-card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+</style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {% block navbar %}
+    <!-- Navbar padrão -->
+    <nav class="navbar navbar-dark mb-4 py-3">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fs-3 fw-bold">🍔 Taberna</span>
+            <div class="d-flex align-items-center gap-3">
+                {% if user.is_authenticated %}
+                    <div class="text-end">
+                        <span class="d-block text-white fw-bold small">👋 Olá, {{ user.first_name|default:user.username }}</span>
+                        <span class="badge bg-primary px-2 py-1" style="font-size: 0.7rem;">{{ perfil }}</span>
+                    </div>
+                    {% if user.is_staff %}
+                        <a href="/admin/" class="btn btn-outline-light btn-sm">Painel Admin</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Sair</a>
+                {% else %}
+                    <span class="badge bg-secondary px-2 py-1">👀 Visitante</span>
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Entrar / Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    {% block content %}
+    <!-- Conteúdo específico de cada página -->
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

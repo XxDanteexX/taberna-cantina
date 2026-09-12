@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Taberna - Identificação{% endblock %}
+
+{% block body_class %}d-flex align-items-center justify-content-center{% endblock %}
+
+{% block navbar %}{% endblock %} <!-- Oculta a Navbar principal na tela de Login -->
+
+{% block content %}
+<div class="login-card p-4 my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">🍔 Taberna</h2>
+        <p class="text-secondary small m-0">Selecione quem você é para continuar</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger py-2 fs-6" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Passo 1: Seleção de Perfil (Abas) -->
+    <ul class="nav nav-pills nav-justified mb-4" id="perfilTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="aluno-tab" data-bs-toggle="pill" data-bs-target="#tab-aluno" type="button">🎓 Aluno</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="prof-tab" data-bs-toggle="pill" data-bs-target="#tab-prof" type="button">👨‍🏫 Professor</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="func-tab" data-bs-toggle="pill" data-bs-target="#tab-func" type="button">💼 Funcionário</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="vis-tab" data-bs-toggle="pill" data-bs-target="#tab-vis" type="button">👀 Visitante</button>
+        </li>
+    </ul>
+
+    <!-- Passo 2: Formulários Específicos para cada Perfil -->
+    <div class="tab-content" id="perfilTabsContent">
+        
+        <!-- Formulário: ALUNO -->
+        <div class="tab-pane fade show active" id="tab-aluno" role="tabpanel">
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tipo_perfil" value="aluno">
+                
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Matrícula (RM) ou CPF do Aluno</label>
+                    <input type="text" name="identificador" class="form-control" placeholder="Digite seu RM ou CPF" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Senha</label>
+                    <input type="password" name="password" class="form-control" placeholder="Sua senha" required>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="remember_me" id="remAluno">
+                    <label class="form-check-label small text-secondary" for="remAluno">Lembrar de mim</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+            </form>
+        </div>
+
+        <!-- Formulário: PROFESSOR -->
+        <div class="tab-pane fade" id="tab-prof" role="tabpanel">
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tipo_perfil" value="professor">
+                
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">CPF do Professor</label>
+                    <input type="text" name="identificador" class="form-control" placeholder="000.000.000-00" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Senha</label>
+                    <input type="password" name="password" class="form-control" placeholder="Sua senha" required>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="remember_me" id="remProf">
+                    <label class="form-check-label small text-secondary" for="remProf">Lembrar de mim</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+            </form>
+        </div>
+
+        <!-- Formulário: FUNCIONÁRIO -->
+        <div class="tab-pane fade" id="tab-func" role="tabpanel">
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tipo_perfil" value="funcionario">
+                
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">CPF do Funcionário</label>
+                    <input type="text" name="identificador" class="form-control" placeholder="000.000.000-00" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Senha</label>
+                    <input type="password" name="password" class="form-control" placeholder="Sua senha" required>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="remember_me" id="remFunc">
+                    <label class="form-check-label small text-secondary" for="remFunc">Lembrar de mim</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+            </form>
+        </div>
+
+        <!-- Formulário: VISITANTE -->
+        <div class="tab-pane fade" id="tab-vis" role="tabpanel">
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tipo_perfil" value="visitante">
+                
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">E-mail de Visitante ou Usuário</label>
+                    <input type="text" name="identificador" class="form-control" placeholder="seuemail@dominio.com" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Senha</label>
+                    <input type="password" name="password" class="form-control" placeholder="Sua senha" required>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="remember_me" id="remVis">
+                    <label class="form-check-label small text-secondary" for="remVis">Lembrar de mim</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
