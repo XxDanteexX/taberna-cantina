@@ -105,13 +105,28 @@
     <!-- Navbar padrão -->
     <nav class="navbar navbar-dark mb-4 py-3">
         <div class="container">
-            <span class="navbar-brand mb-0 h1 fs-3 fw-bold">🍔 Taberna</span>
+            <a href="{% url 'cardapio' %}" class="navbar-brand mb-0 h1 fs-3 fw-bold text-decoration-none">🍔 Taberna</a>
             <div class="d-flex align-items-center gap-3">
                 {% if user.is_authenticated %}
-                    <div class="text-end">
+                    <!-- Botões de Acesso Rápido: Cartões e Carrinho -->
+                    <a href="{% url 'cadastrar_cartao' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+                        💳 <span class="d-none d-md-inline">Meus</span> Cartões
+                    </a>
+                    
+                    <a href="{% url 'cardapio' %}#secao-carrinho" class="btn btn-warning btn-sm fw-bold position-relative">
+                        🛒 Carrinho
+                        {% if itens_carrinho %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ itens_carrinho|length }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <div class="text-end ms-2">
                         <span class="d-block text-white fw-bold small">👋 Olá, {{ user.first_name|default:user.username }}</span>
                         <span class="badge bg-primary px-2 py-1" style="font-size: 0.7rem;">{{ perfil }}</span>
                     </div>
+
                     {% if user.is_staff %}
                         <a href="/admin/" class="btn btn-outline-light btn-sm">Painel Admin</a>
                     {% endif %}

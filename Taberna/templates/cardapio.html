@@ -4,10 +4,89 @@
 
 {% block content %}
 <div class="container pb-5">
+    <!-- Mensagens de Alerta (Sucesso / Erro) -->
+    {% if messages %}
+        <div class="row justify-content-center mb-3">
+            <div class="col-md-8">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     <div class="row mb-3">
         <div class="col text-center">
             <h2 class="fw-bold">Cardápio da Cantina</h2>
-            <p class="text-secondary">Navegue pelas categorias ou procure pelo seu item favorito</p>
+            <p class="text-secondary">Navegue pelas categorias ou procure pelo seu item favorito | Perfil: <strong class="text-warning">{{ perfil }}</strong></p>
+        </div>
+    </div>
+
+    <!-- Seção do Carrinho de Compras (SEMPRE FIXA NA PÁGINA) -->
+    <div class="row justify-content-center mb-4" id="secao-carrinho">
+        <div class="col-md-10">
+            <div class="card bg-dark text-white border-warning p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="m-0 fw-bold text-warning">🛒 Seu Carrinho</h5>
+                    {% if itens_carrinho %}
+                        <a href="{% url 'limpar_carrinho' %}" class="btn btn-outline-danger btn-sm">Esvaziar Carrinho</a>
+                    {% endif %}
+                </div>
+
+                {% if itens_carrinho %}
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for item in itens_carrinho %}
+                            <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
+                                <div>
+                                    <strong>{{ item.produto.nome }}</strong> (x{{ item.quantidade }})
+                                </div>
+                                <span>R$ {{ item.subtotal }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <form action="{% url 'finalizar_compra' %}" method="POST" class="row g-3 align-items-center">
+                        {% csrf_token %}
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Forma de Pagamento:</label>
+                            <select name="forma_pagamento" id="forma_pagamento_select" class="form-select" onchange="toggleCartoesCadastrados()" required>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="PIX">Pix</option>
+                                <option value="CARTAO">Cartão de Crédito/Débito</option>
+                                {% if cartoes %}
+                                    <option value="CARTAO_SALVO">💳 Usar Cartão Cadastrado</option>
+                                {% endif %}
+                                {% if pode_fiado %}
+                                    <option value="FIADO">Conta Mensal / Prazo Estendido (30 dias)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        {% if cartoes %}
+                        <div class="col-md-4 d-none" id="container_cartao_select">
+                            <label class="form-label fw-bold">Selecione o Cartão:</label>
+                            <select name="cartao_id" class="form-select">
+                                {% for c in cartoes %}
+                                    <option value="{{ c.id }}">{{ c.get_tipo_display }} - {{ c.numero_mascarado }} ({{ c.nome_titular }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-6 text-end ms-auto">
+                            <h4 class="fw-bold text-success mb-2">Total: R$ {{ total_carrinho }}</h4>
+                            <button type="submit" class="btn btn-success fw-bold px-4">Finalizar Pedido</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-secondary m-0">Seu carrinho está vazio no momento. Adicione produtos abaixo para realizar o pedido.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -65,9 +144,17 @@
                                         {{ produto.descricao|default:"Sem descrição cadastrada." }}
                                     </p>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle">
-                                    <span class="price-tag">R$ {{ produto.preco }}</span>
-                                    <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3">
+                                        <span class="price-tag">R$ {{ produto.preco }}</span>
+                                        <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                    </div>
+                                    <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold" {% if produto.quantidade <= 0 %}disabled{% endif %}>
+                                            {% if produto.quantidade > 0 %}Adicionar ao Carrinho{% else %}Esgotado{% endif %}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -113,9 +200,17 @@
                                                 {{ produto.descricao|default:"Sem descrição cadastrada." }}
                                             </p>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle">
-                                            <span class="price-tag">R$ {{ produto.preco }}</span>
-                                            <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3">
+                                                <span class="price-tag">R$ {{ produto.preco }}</span>
+                                                <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                            </div>
+                                            <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary w-100 fw-bold" {% if produto.quantidade <= 0 %}disabled{% endif %}>
+                                                    {% if produto.quantidade > 0 %}Adicionar ao Carrinho{% else %}Esgotado{% endif %}
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -144,6 +239,19 @@
                 card.style.display = 'none';
             }
         });
+    }
+
+    function toggleCartoesCadastrados() {
+        const selectPagamento = document.getElementById('forma_pagamento_select');
+        const containerCartao = document.getElementById('container_cartao_select');
+        
+        if (containerCartao) {
+            if (selectPagamento.value === 'CARTAO_SALVO') {
+                containerCartao.classList.remove('d-none');
+            } else {
+                containerCartao.classList.add('d-none');
+            }
+        }
     }
 </script>
 {% endblock %}

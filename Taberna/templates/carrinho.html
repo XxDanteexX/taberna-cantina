@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Meu Carrinho</h2>
+
+    {% if itens_carrinho %}
+        <div class="table-responsive mb-4">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unitário</th>
+                        <th>Subtotal</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens_carrinho %}
+                        <tr>
+                            <td>{{ item.produto.nome }}</td>
+                            <td>{{ item.quantidade }}</td>
+                            <td>R$ {{ item.produto.preco }}</td>
+                            <td>R$ {{ item.subtotal }}</td>
+                            <td>
+                                <form action="{% url 'remover_do_carrinho' item.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Remover</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3">Resumo do Pedido</h4>
+                    <div class="d-flex justify-content-between mb-3 fs-5 fw-bold">
+                        <span>Total:</span>
+                        <span class="text-success">R$ {{ total_carrinho }}</span>
+                    </div>
+
+                    <form action="{% url 'finalizar_compra' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="forma_pagamento_carrinho" class="form-label fw-bold">Forma de Pagamento:</label>
+                            <select name="forma_pagamento" id="forma_pagamento_carrinho" class="form-select" onchange="toggleCartoesCarrinho()" required>
+                                <option value="PIX">PIX</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="CARTAO">Cartão no Balcão / Maquininha</option>
+                                {% if cartoes %}
+                                    <option value="CARTAO_SALVO">💳 Usar Cartão Cadastrado</option>
+                                {% endif %}
+                                {% if pode_fiado %}
+                                    <option value="FIADO">Conta Mensal / Prazo Estendido (30 dias)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        {% if cartoes %}
+                        <div class="mb-3 d-none" id="container_cartao_carrinho">
+                            <label for="cartao_id" class="form-label fw-bold">Selecione o Cartão Cadastrado:</label>
+                            <select name="cartao_id" id="cartao_id" class="form-select">
+                                {% for c in cartoes %}
+                                    <option value="{{ c.id }}">{{ c.get_tipo_display }} - {{ c.numero_mascarado }} ({{ c.nome_titular }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Finalizar Compra</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <h4>Seu carrinho está vazio.</h4>
+            <a href="{% url 'cardapio' %}" class="btn btn-primary mt-3">Ver Cardápio</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleCartoesCarrinho() {
+        const selectPagamento = document.getElementById('forma_pagamento_carrinho');
+        const containerCartao = document.getElementById('container_cartao_carrinho');
+        
+        if (containerCartao) {
+            if (selectPagamento.value === 'CARTAO_SALVO') {
+                containerCartao.classList.remove('d-none');
+            } else {
+                containerCartao.classList.add('d-none');
+            }
+        }
+    }
+</script>
+{% endblock %}

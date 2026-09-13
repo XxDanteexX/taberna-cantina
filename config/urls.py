@@ -17,14 +17,30 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
-from Taberna.views import cardapio, login_view, logout_view
+from Taberna.views import (
+    cardapio, 
+    login_view, 
+    logout_view, 
+    ver_carrinho,
+    adicionar_ao_carrinho, 
+    remover_do_carrinho,
+    limpar_carrinho, 
+    finalizar_compra,
+    cadastrar_cartao
+)
 
 admin.site.site_url = '/cardapio/'
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/login/')),  # Direciona a raiz para a tela de login do site
+    path('', RedirectView.as_view(url='/login/')),
     path('admin/', admin.site.urls),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('cardapio/', cardapio, name='cardapio'),
+    path('carrinho/', ver_carrinho, name='ver_carrinho'),
+    path('carrinho/adicionar/<int:produto_id>/', adicionar_ao_carrinho, name='adicionar_ao_carrinho'),
+    path('carrinho/remover/<int:produto_id>/', remover_do_carrinho, name='remover_do_carrinho'),
+    path('carrinho/limpar/', limpar_carrinho, name='limpar_carrinho'),
+    path('carrinho/finalizar/', finalizar_compra, name='finalizar_compra'),
+    path('cartoes/', cadastrar_cartao, name='cadastrar_cartao'),
 ]
