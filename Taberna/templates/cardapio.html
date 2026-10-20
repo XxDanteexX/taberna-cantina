@@ -9,7 +9,7 @@
         <div class="row justify-content-center mb-3">
             <div class="col-md-8">
                 {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -32,7 +32,11 @@
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h5 class="m-0 fw-bold text-warning">🛒 Seu Carrinho</h5>
                     {% if itens_carrinho %}
-                        <a href="{% url 'limpar_carrinho' %}" class="btn btn-outline-danger btn-sm">Esvaziar Carrinho</a>
+                        <form action="{% url 'limpar_carrinho' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="origem" value="cardapio">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Esvaziar Carrinho</button>
+                        </form>
                     {% endif %}
                 </div>
 
@@ -55,7 +59,7 @@
                             <select name="forma_pagamento" id="forma_pagamento_select" class="form-select" onchange="toggleCartoesCadastrados()" required>
                                 <option value="DINHEIRO">Dinheiro</option>
                                 <option value="PIX">Pix</option>
-                                <option value="CARTAO">Cartão de Crédito/Débito</option>
+                                <option value="CARTAO">Cartão no Balcão (Maquininha)</option>
                                 {% if cartoes %}
                                     <option value="CARTAO_SALVO">💳 Usar Cartão Cadastrado</option>
                                 {% endif %}
@@ -63,6 +67,10 @@
                                     <option value="FIADO">Conta Mensal / Prazo Estendido (30 dias)</option>
                                 {% endif %}
                             </select>
+                            <div class="form-text text-secondary">
+                                “Cartão no Balcão” é o pagamento presencial na maquininha e não exige cadastro.
+                                {% if cartoes %}Para usar um cartão salvo, escolha “Usar Cartão Cadastrado”.{% endif %}
+                            </div>
                         </div>
 
                         {% if cartoes %}
@@ -93,7 +101,7 @@
     <!-- Campo de Busca Instantânea -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6 col-lg-5">
-            <input type="text" id="campoBusca" class="form-control search-input py-2 rounded-pill px-3" placeholder="🔍 Digite o nome do produto..." onkeyup="filtrarProdutos()">
+            <input type="text" id="campoBusca" class="form-control search-input py-2 rounded-pill px-3" placeholder="🔍 Digite o nome do produto..." oninput="filtrarProdutos()">
         </div>
     </div>
 
@@ -165,6 +173,10 @@
                     </div>
                 {% endfor %}
             </div>
+
+            <div id="semResultados" class="text-center py-4 d-none">
+                <p class="text-secondary fs-5 m-0">Nenhum produto encontrado para a busca.</p>
+            </div>
         </div>
 
         <!-- ABAS INDIVIDUAIS DE CADA CATEGORIA -->
@@ -227,18 +239,40 @@
 
 {% block extra_scripts %}
 <script>
+    function normalizarTexto(texto) {
+        return (texto || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
     function filtrarProdutos() {
-        const termo = document.getElementById('campoBusca').value.toLowerCase().trim();
+        const termo = normalizarTexto(document.getElementById('campoBusca').value);
         const todosOsProdutos = document.querySelectorAll('.item-produto');
+        let encontrados = 0;
 
         todosOsProdutos.forEach(card => {
-            const nomeProduto = card.getAttribute('data-nome');
-            if (nomeProduto.includes(termo)) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
+            const nomeProduto = normalizarTexto(card.getAttribute('data-nome'));
+            const visivel = !termo || nomeProduto.includes(termo);
+            card.style.display = visivel ? '' : 'none';
+            if (visivel) {
+                encontrados++;
             }
         });
+
+        // A busca sempre mostra o resultado na aba "Todos os Itens".
+        if (termo) {
+            const abaTodos = document.getElementById('pills-todos-tab');
+            if (abaTodos && window.bootstrap) {
+                bootstrap.Tab.getOrCreateInstance(abaTodos).show();
+            }
+        }
+
+        const semResultados = document.getElementById('semResultados');
+        if (semResultados) {
+            semResultados.classList.toggle('d-none', !termo || encontrados > 0);
+        }
     }
 
     function toggleCartoesCadastrados() {

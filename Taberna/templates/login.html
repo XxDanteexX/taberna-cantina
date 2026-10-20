@@ -131,3 +131,21 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipo = "{{ tipo_perfil_selecionado|default:'aluno'|escapejs }}";
+        const abas = {
+            aluno: 'aluno-tab',
+            professor: 'prof-tab',
+            funcionario: 'func-tab',
+            visitante: 'vis-tab'
+        };
+        const botao = document.getElementById(abas[tipo] || abas.aluno);
+        if (botao && window.bootstrap) {
+            bootstrap.Tab.getOrCreateInstance(botao).show();
+        }
+    });
+</script>
+{% endblock %}

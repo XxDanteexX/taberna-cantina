@@ -8,7 +8,7 @@
         <div class="col-md-6">
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -25,7 +25,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Número do Cartão</label>
-                        <input type="text" name="numero" class="form-control" placeholder="0000 0000 0000 0000" maxlength="16" required>
+                        <input type="text" name="numero" class="form-control" placeholder="0000 0000 0000 0000" maxlength="23" inputmode="numeric" autocomplete="cc-number" required>
+                        <div class="form-text text-secondary">
+                            Apenas os quatro últimos dígitos serão armazenados.
+                            Para testes com dígito verificador válido, use 4242 4242 4242 4242 ou 5555 5555 5555 4444.
+                            {% if modo_debug %}No modo de desenvolvimento, números sem dígito verificador também são aceitos.{% endif %}
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -53,9 +58,9 @@
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
                                 <div>
                                     <strong>{{ c.get_tipo_display }}</strong> - {{ c.numero_mascarado }}
-                                    <br><small class="text-secondary">{{ c.nome_titular }} ({{ c.validade }})</small>
+                                    <br><small class="text-secondary">{{ c.nome_titular }} ({{ c.validade }}) · {{ c.bandeira }}</small>
                                 </div>
-                                <span class="badge bg-success">Ativo</span>
+                                <span class="badge bg-success">Salvo</span>
                             </li>
                         {% endfor %}
                     </ul>

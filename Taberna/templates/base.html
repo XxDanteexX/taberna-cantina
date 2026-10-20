@@ -112,25 +112,30 @@
                     <a href="{% url 'cadastrar_cartao' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
                         💳 <span class="d-none d-md-inline">Meus</span> Cartões
                     </a>
-                    
-                    <a href="{% url 'cardapio' %}#secao-carrinho" class="btn btn-warning btn-sm fw-bold position-relative">
+
+                    <a href="{% url 'ver_carrinho' %}" class="btn btn-warning btn-sm fw-bold position-relative">
                         🛒 Carrinho
-                        {% if itens_carrinho %}
+                        {% if qtd_total_carrinho %}
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ itens_carrinho|length }}
+                                {{ qtd_total_carrinho }}
                             </span>
                         {% endif %}
                     </a>
 
                     <div class="text-end ms-2">
                         <span class="d-block text-white fw-bold small">👋 Olá, {{ user.first_name|default:user.username }}</span>
-                        <span class="badge bg-primary px-2 py-1" style="font-size: 0.7rem;">{{ perfil }}</span>
+                        {% if perfil %}
+                            <span class="badge bg-primary px-2 py-1" style="font-size: 0.7rem;">{{ perfil }}</span>
+                        {% endif %}
                     </div>
 
                     {% if user.is_staff %}
                         <a href="/admin/" class="btn btn-outline-light btn-sm">Painel Admin</a>
                     {% endif %}
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Sair</a>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Sair</button>
+                    </form>
                 {% else %}
                     <span class="badge bg-secondary px-2 py-1">👀 Visitante</span>
                     <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Entrar / Login</a>

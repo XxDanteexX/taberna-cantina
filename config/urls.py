@@ -26,7 +26,8 @@ from Taberna.views import (
     remover_do_carrinho,
     limpar_carrinho, 
     finalizar_compra,
-    cadastrar_cartao
+    cadastrar_cartao,
+    dev_login,
 )
 
 admin.site.site_url = '/cardapio/'
@@ -36,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('dev-login/<str:token>/', dev_login, name='dev_login'),
     path('cardapio/', cardapio, name='cardapio'),
     path('carrinho/', ver_carrinho, name='ver_carrinho'),
     path('carrinho/adicionar/<int:produto_id>/', adicionar_ao_carrinho, name='adicionar_ao_carrinho'),
