@@ -705,6 +705,76 @@
         padding: 0;
     }
 
+    .product-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+    }
+
+    .product-head-copy {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .product-media {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        flex: 0 0 88px;
+        overflow: hidden;
+        border: 1px solid var(--tb-border);
+        border-radius: 10px;
+        background-color: #101010;
+    }
+
+    .product-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.34)),
+            radial-gradient(circle at 100% 0, rgba(220, 38, 38, 0.14), transparent 58%);
+        pointer-events: none;
+    }
+
+    .product-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.95);
+        transition: transform 0.35s ease;
+    }
+
+    .product-card:hover .product-media img {
+        transform: scale(1.04);
+    }
+
+    .product-media-fallback {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        padding: 0.3rem;
+        background: linear-gradient(135deg, #151515, #080808);
+        color: var(--tb-muted);
+        font-size: 0.5rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .product-media-fallback i {
+        color: var(--tb-accent);
+        font-size: 1.15rem;
+        opacity: 0.8;
+    }
+
     .product-meta {
         gap: 0.5rem;
     }
@@ -729,12 +799,14 @@
         background-color: var(--tb-accent);
     }
 
-    .product-title {
-        font-size: 1rem;
+    .product-head-copy .product-title {
+        font-size: 0.98rem;
         line-height: 1.35;
     }
 
     .product-description {
+        margin-top: 0.85rem;
+        margin-bottom: 0;
         min-height: 2.7em;
         line-height: 1.55;
     }
@@ -950,6 +1022,16 @@
 
         .product-description {
             min-height: 0;
+        }
+
+        .product-head {
+            gap: 0.7rem;
+        }
+
+        .product-media {
+            width: 76px;
+            height: 76px;
+            flex-basis: 76px;
         }
     }
     .product-add {

@@ -21,7 +21,7 @@
 ### Resumo
 
 1. Clonar o repositório.
-2. Criar a venv, instalar dependências, criar o banco, popular o cardápio e criar o login de desenvolvimento.
+2. Criar a venv, instalar dependências, criar o banco, popular o cardápio, criar o login de desenvolvimento e o superusuário `root`.
 3. Rodar o servidor e abrir o link.
 
 ---
@@ -81,8 +81,40 @@ REM Cria o usuário dev_taberna e imprime o link de login
 ```
 
 > **Importante:** copie o link que aparecer. Ele expira em 1 hora.  
-> O `dev_login` não pergunta nome nem senha.  
-> **Não rode `createsuperuser`**; ele é que pergunta nome, e-mail e senha.
+> O `dev_login` não pergunta nome nem senha.
+
+---
+
+## Passo 2.1 — Criar o superusuário root
+
+Rode:
+
+```bat
+REM Cria o superusuário que você vai usar no site e no /admin/
+.venv\Scripts\python.exe manage.py createsuperuser
+```
+
+Quando o comando pedir, digite exatamente:
+
+```text
+Username: root
+Email address: (pressione Enter para deixar vazio)
+Password: root1234
+Password (again): root1234
+```
+
+No final deve aparecer: **Superuser created successfully.**
+
+> **Importante:** `root1234` é uma senha fraca, apenas para o projeto local
+> da escola. Não use essa senha em um site publicado na internet.
+
+Se o `root` já existir e você quiser trocar a senha:
+
+```bat
+.venv\Scripts\python.exe manage.py changepassword root
+```
+
+Digite `root1234` duas vezes.
 
 ---
 
@@ -105,6 +137,9 @@ Depois abra o link do `dev_login` que você copiou.
 
 - Para parar o servidor: **Ctrl + C**.
 - Admin do Django: `http://127.0.0.1:8000/admin/`
+  - **Usuário:** `root`
+  - **Senha:** `root1234`
+- No login normal do site, use `root` / `root1234` em qualquer aba. O sistema reconhece a equipe administrativa e libera o Painel do dono.
 
 ---
 
@@ -190,14 +225,16 @@ REM Roda os testes automatizados
 .venv\Scripts\python.exe manage.py test
 ```
 
-O esperado é terminar com **OK** e **36 testes passando**.
+O esperado é terminar com **OK** e **48 testes passando**.
 
 ---
 
 ## Dicas
 
-- **Não rode `createsuperuser`**. O `dev_login` já cria o superusuário `dev_taberna`.
+- Use o superusuário `root` (senha `root1234`) para entrar no `/admin/` e no Painel do dono.
+- O `dev_login` também cria o usuário `dev_taberna`, mas o `root` é o seu usuário principal.
 - Se o seed disser `0 criados` e `39 já existentes`, está correto.
+- As fotos dos produtos ficam em `Taberna/static/produtos/` e aparecem como miniaturas ao lado do nome; para trocar, edite o campo `Imagem` do produto no `/admin/` ou substitua o arquivo.
 - Para testar cartão, use `4242 4242 4242 4242`.
 - Em `DEBUG=True`, qualquer número de 13 a 19 dígitos também é aceito.
 - A pasta `.venv` e o arquivo `db.sqlite3` não vão para o GitHub.

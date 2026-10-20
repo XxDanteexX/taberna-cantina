@@ -53,6 +53,13 @@ python manage.py seed_dados
 O comando é idempotente: pode ser executado novamente sem duplicar categorias
 ou produtos. Ele não sobrescreve preços/estoques de produtos já existentes.
 
+Cada produto recebe uma imagem ilustrativa em `Taberna/static/produtos/`, e o
+caminho fica no campo `Produto.imagem`. As imagens atuais são JPEG 640x480 e
+aparecem como miniaturas compactas ao lado do nome do produto, para orientar a
+escolha sem ocupar o card inteiro. Para trocar uma foto, edite o campo no admin
+ou substitua o arquivo correspondente. As imagens são ilustrativas e podem ser
+substituídas por fotos próprias antes de publicar o projeto.
+
 ### Login de desenvolvimento
 
 Para entrar sem preencher cadastro de pessoa:

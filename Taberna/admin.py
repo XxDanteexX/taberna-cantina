@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.templatetags.static import static
+from django.utils.html import format_html
 
 from .models import (
     Aluno,
@@ -17,10 +19,21 @@ from .models import (
 
 
 class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'preco', 'quantidade', 'categoria', 'mais_vendido')
+    list_display = ('nome', 'imagem_preview', 'preco', 'quantidade', 'categoria', 'mais_vendido')
     list_editable = ('mais_vendido',)
     list_filter = ('categoria', 'mais_vendido')
     search_fields = ('nome', 'descricao')
+
+    @admin.display(description='Imagem')
+    def imagem_preview(self, obj):
+        if not obj.imagem:
+            return '—'
+        return format_html(
+            '<img src="{}" alt="{}" '
+            'style="width:56px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #333;">',
+            static(obj.imagem),
+            obj.nome,
+        )
 
 
 class ItemVendaInline(admin.TabularInline):

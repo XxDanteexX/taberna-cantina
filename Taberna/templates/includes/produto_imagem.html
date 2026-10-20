@@ -1,0 +1,23 @@
+{% load static %}
+<div class="product-media">
+    {% if produto.imagem %}
+        <img
+            src="{% static produto.imagem %}"
+            alt="Imagem de {{ produto.nome }}"
+            width="88"
+            height="88"
+            loading="lazy"
+            decoding="async"
+            onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');"
+        >
+        <div class="product-media-fallback d-none" aria-hidden="true">
+            <i class="bi bi-image"></i>
+            <span>{{ produto.categoria.nome }}</span>
+        </div>
+    {% else %}
+        <div class="product-media-fallback" aria-hidden="true">
+            <i class="bi bi-image"></i>
+            <span>{{ produto.categoria.nome }}</span>
+        </div>
+    {% endif %}
+</div>

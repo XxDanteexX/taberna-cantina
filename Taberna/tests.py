@@ -110,6 +110,39 @@ class CarrinhoTests(TestCase):
         self.assertNotIn('carrinho', self.client.session)
 
 
+class ProdutoImagemTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='cliente-imagem',
+            password='SenhaForte!123',
+        )
+        self.categoria = Categoria.objects.create(nome='Bebidas')
+        self.produto = Produto.objects.create(
+            nome='Suco de Uva',
+            preco=Decimal('6.00'),
+            quantidade=10,
+            categoria=self.categoria,
+            imagem='produtos/suco-de-uva-300ml.jpg',
+        )
+        self.client.force_login(self.user)
+
+    def test_cardapio_renderiza_imagem_do_produto(self):
+        response = self.client.get(reverse('cardapio'))
+        self.assertContains(response, '/static/produtos/suco-de-uva-300ml.jpg')
+        self.assertContains(response, 'Imagem de Suco de Uva')
+
+    def test_cardapio_usa_fallback_quando_produto_nao_tem_imagem(self):
+        self.produto.imagem = ''
+        self.produto.save(update_fields=['imagem'])
+        response = self.client.get(reverse('cardapio'))
+        self.assertContains(response, 'product-media-fallback')
+
+    def test_seed_associa_imagem_aos_produtos(self):
+        call_command('seed_dados', verbosity=0)
+        produto = Produto.objects.get(nome='Coca-Cola Lata 350ml')
+        self.assertEqual(produto.imagem, 'produtos/coca-cola-lata-350ml.jpg')
+
+
 class CheckoutTests(TestCase):
     def setUp(self):
         cache.clear()

@@ -35,6 +35,13 @@ class Produto(models.Model):
         related_name='produtos',
     )
     descricao = models.TextField(blank=True, null=True)
+    imagem = models.CharField(
+        'Imagem',
+        max_length=200,
+        blank=True,
+        default='',
+        help_text='Caminho dentro de static/, ex.: produtos/coca-cola-lata-350ml.jpg',
+    )
     mais_vendido = models.BooleanField(
         default=False,
         verbose_name='Mais Vendido / Destaque',

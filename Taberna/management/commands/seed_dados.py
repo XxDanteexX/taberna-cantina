@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils.text import slugify
 
 from Taberna.models import Categoria, Produto
 
@@ -100,13 +101,15 @@ class Command(BaseCommand):
                 categoria.save(update_fields=['descricao'])
 
             for nome, preco, quantidade, descricao, mais_vendido in dados_categoria['produtos']:
-                _, produto_criado = Produto.objects.get_or_create(
+                caminho_imagem = f'produtos/{slugify(nome)}.jpg'
+                produto, produto_criado = Produto.objects.get_or_create(
                     nome=nome,
                     categoria=categoria,
                     defaults={
                         'preco': Decimal(preco),
                         'quantidade': quantidade,
                         'descricao': descricao,
+                        'imagem': caminho_imagem,
                         'mais_vendido': mais_vendido,
                     },
                 )
@@ -114,6 +117,9 @@ class Command(BaseCommand):
                     produtos_criados += 1
                 else:
                     produtos_existentes += 1
+                    if not produto.imagem:
+                        produto.imagem = caminho_imagem
+                        produto.save(update_fields=['imagem'])
 
         self.stdout.write(self.style.SUCCESS(
             f'Categorias criadas: {categorias_criadas}. '

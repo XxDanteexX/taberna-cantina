@@ -14,8 +14,8 @@ COMO USAR
 
 RESUMO
 1. Clonar o repositorio.
-2. Criar a venv, instalar dependencias, criar o banco, popular o cardapio
-   e criar o login de desenvolvimento.
+2. Criar a venv, instalar dependencias, criar o banco, popular o cardapio,
+   criar o login de desenvolvimento e o superusuario root.
 3. Rodar o servidor e abrir o link.
 
 ============================================================
@@ -70,7 +70,32 @@ REM Cria o usuario dev_taberna e imprime o link de login
 
 IMPORTANTE: copie o link que aparecer. Ele expira em 1 hora.
 O dev_login nao pergunta nome nem senha.
-Nao rode createsuperuser; ele e que pergunta nome, e-mail e senha.
+
+============================================================
+PASSO 2.1 - CRIAR O SUPERUSUARIO ROOT
+============================================================
+--- INICIO ---
+REM Cria o superusuario que voce vai usar no site e no /admin/
+.venv\Scripts\python.exe manage.py createsuperuser
+--- FIM ---
+
+Quando o comando pedir, digite exatamente:
+
+Username: root
+Email address: (pressione Enter para deixar vazio)
+Password: root1234
+Password (again): root1234
+
+No final deve aparecer: Superuser created successfully.
+
+IMPORTANTE: root1234 e uma senha fraca, apenas para o projeto local
+da escola. Nao use essa senha em um site publicado na internet.
+
+Se o root ja existir e voce quiser trocar a senha:
+--- INICIO ---
+.venv\Scripts\python.exe manage.py changepassword root
+--- FIM ---
+Digite root1234 duas vezes.
 
 ============================================================
 PASSO 3 - RODAR O SERVIDOR
@@ -88,6 +113,12 @@ Para parar o servidor: Ctrl + C.
 
 Admin do Django:
 http://127.0.0.1:8000/admin/
+
+Usuario: root
+Senha: root1234
+
+No login normal do site, use root / root1234 em qualquer aba.
+O sistema reconhece a equipe administrativa e libera o Painel do dono.
 
 ============================================================
 SE O PYTHON NAO FOR RECONHECIDO
@@ -156,13 +187,15 @@ REM Roda os testes automatizados
 .venv\Scripts\python.exe manage.py test
 --- FIM ---
 
-O esperado e terminar com "OK" e 36 testes passando.
+O esperado e terminar com "OK" e 48 testes passando.
 
 ============================================================
 DICAS
 ============================================================
-- Nao rode createsuperuser. O dev_login ja cria o superusuario dev_taberna.
+- Use o superusuario root (senha root1234) para entrar no /admin/ e no Painel do dono.
+- O dev_login tambem cria o usuario dev_taberna, mas o root e o seu usuario principal.
 - Se o seed disser "0 criados" e "39 ja existentes", esta correto.
+- As fotos dos produtos ficam em Taberna/static/produtos/ e aparecem como miniaturas ao lado do nome; para trocar, edite o campo Imagem do produto no /admin/ ou substitua o arquivo.
 - Para testar cartao, use 4242 4242 4242 4242.
 - Em DEBUG=True, qualquer numero de 13 a 19 digitos tambem e aceito.
 - A pasta .venv e o arquivo db.sqlite3 nao vao para o GitHub.

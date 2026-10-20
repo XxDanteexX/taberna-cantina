@@ -1,0 +1,19 @@
+<div class="product-head">
+    {% include "includes/produto_imagem.html" %}
+    <div class="product-head-copy">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="badge badge-categoria px-2 py-1 rounded-pill">
+                {{ produto.categoria.nome }}
+            </span>
+            {% if produto.mais_vendido %}
+                <span class="badge bg-warning"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>Popular</span>
+            {% endif %}
+        </div>
+        <h5 class="card-title fw-bold m-0 text-white nome-produto product-title">
+            {{ produto.nome }}
+        </h5>
+    </div>
+</div>
+<p class="card-text text-secondary small product-description">
+    {{ produto.descricao|default:"Sem descrição cadastrada." }}
+</p>
