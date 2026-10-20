@@ -222,7 +222,9 @@ git push
 ```
 
 > Se o Git pedir login, conclua antes.  
-> A pasta local já está conectada ao repositório.
+> A pasta local já está conectada ao repositório.  
+> Se não houver alterações, o Git pode responder `nothing to commit`.  
+> O `db.sqlite3` e a pasta `.venv` continuam fora do Git.
 
 ---
 

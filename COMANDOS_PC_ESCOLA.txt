@@ -188,6 +188,8 @@ git push
 
 Se o Git pedir login, conclua antes.
 A pasta local ja esta conectada ao repositorio.
+Se nao houver alteracoes, o Git pode responder "nothing to commit".
+O db.sqlite3 e a pasta .venv continuam fora do Git.
 
 ============================================================
 NO FINAL DA AULA
