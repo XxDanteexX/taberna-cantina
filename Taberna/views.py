@@ -1,7 +1,8 @@
 import hashlib
 import re
 from datetime import timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
@@ -10,12 +11,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core import signing
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET, require_POST
 
 from .dev_login import DEV_LOGIN_SALT, DEV_USERNAME
@@ -25,6 +29,7 @@ from .models import (
     Cartao,
     Categoria,
     ContaReceber,
+    Despesa,
     Funcionario,
     ItemVenda,
     Professor,
@@ -36,6 +41,15 @@ from .models import (
 MAX_TENTATIVAS_LOGIN = 5
 BLOQUEIO_LOGIN_SEGUNDOS = 5 * 60
 TIPOS_PERFIL = {'aluno', 'professor', 'funcionario', 'visitante'}
+MESES_ABREVIADOS = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+]
+MESES_COMPLETOS = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+]
+ESTOQUE_BAIXO = 5
 
 
 class EstoqueInsuficiente(Exception):
@@ -115,6 +129,19 @@ def _buscar_usuario_por_perfil(tipo_perfil, identificador):
 
 def _render_login(request, tipo_perfil):
     return render(request, 'login.html', {'tipo_perfil_selecionado': tipo_perfil})
+
+
+def dono_required(view_func):
+    """Restringe a visão para a administração da cantina (is_staff/is_superuser)."""
+
+    @login_required(login_url='login')
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
 
 
 # ---------------------------------------------------------------------------
@@ -649,4 +676,238 @@ def cadastrar_cartao(request):
         'perfil': obter_perfil_usuario(request.user),
         'qtd_total_carrinho': qtd_total_carrinho,
         'modo_debug': settings.DEBUG,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Painel do dono
+# ---------------------------------------------------------------------------
+
+def _adicionar_despesa(request):
+    """Processa o formulário de gastos do painel do dono."""
+    ano_retorno = timezone.localdate().year
+    try:
+        ano_retorno = int(request.POST.get('ano', ano_retorno))
+    except (TypeError, ValueError):
+        pass
+
+    descricao = (request.POST.get('descricao') or '').strip()
+    valor_texto = (request.POST.get('valor') or '').strip().replace(',', '.')
+    data_texto = (request.POST.get('data') or '').strip()
+    categoria = (request.POST.get('categoria') or 'OUTROS').strip().upper()
+    erros = []
+
+    if not descricao:
+        erros.append('Informe uma descrição para o gasto.')
+    elif len(descricao) > 150:
+        erros.append('A descrição deve ter no máximo 150 caracteres.')
+
+    valor = None
+    if not valor_texto:
+        erros.append('Informe o valor do gasto.')
+    else:
+        try:
+            valor = Decimal(valor_texto)
+        except (InvalidOperation, ValueError):
+            erros.append('Informe um valor válido para o gasto.')
+
+        if valor is not None:
+            if not valor.is_finite() or valor <= 0:
+                erros.append('O valor do gasto deve ser maior que zero.')
+            elif valor > Decimal('99999999.99'):
+                erros.append('O valor informado é muito alto.')
+            else:
+                valor = valor.quantize(Decimal('0.01'))
+
+    data_gasto = parse_date(data_texto) if data_texto else None
+    if data_gasto is None:
+        erros.append('Informe uma data válida para o gasto.')
+
+    if categoria not in dict(Despesa.CATEGORIAS):
+        categoria = 'OUTROS'
+
+    if erros:
+        for erro in erros:
+            messages.error(request, erro)
+        return redirect(f"{reverse('painel_dono')}?ano={ano_retorno}")
+
+    Despesa.objects.create(
+        descricao=descricao,
+        categoria=categoria,
+        valor=valor,
+        data=data_gasto,
+    )
+    messages.success(request, 'Gasto registrado com sucesso.')
+    return redirect(f"{reverse('painel_dono')}?ano={data_gasto.year}")
+
+
+@dono_required
+def painel_dono(request):
+    """Painel administrativo com vendas, gastos e estoque da cantina."""
+    if request.method == 'POST':
+        return _adicionar_despesa(request)
+
+    hoje = timezone.localdate()
+
+    anos = {hoje.year}
+    anos.update(data.year for data in Venda.objects.dates('data_venda', 'year'))
+    anos.update(data.year for data in Despesa.objects.dates('data', 'year'))
+    anos = sorted(anos, reverse=True)
+
+    try:
+        ano_selecionado = int(request.GET.get('ano', hoje.year))
+    except (TypeError, ValueError):
+        ano_selecionado = hoje.year
+    if ano_selecionado not in anos:
+        ano_selecionado = hoje.year
+
+    vendas_ano_qs = Venda.objects.filter(data_venda__year=ano_selecionado)
+
+    vendas_agregadas = (
+        vendas_ano_qs
+        .annotate(mes=TruncMonth('data_venda'))
+        .values('mes')
+        .annotate(receita=Sum('total'), quantidade=Count('id'))
+        .order_by('mes')
+    )
+    itens_agregados = (
+        ItemVenda.objects
+        .filter(venda__data_venda__year=ano_selecionado)
+        .annotate(mes=TruncMonth('venda__data_venda'))
+        .values('mes')
+        .annotate(quantidade=Sum('quantidade'))
+        .order_by('mes')
+    )
+    despesas_agregadas = (
+        Despesa.objects
+        .filter(data__year=ano_selecionado)
+        .annotate(mes=TruncMonth('data'))
+        .values('mes')
+        .annotate(total=Sum('valor'))
+        .order_by('mes')
+    )
+
+    receita_por_mes = [Decimal('0.00') for _ in range(12)]
+    vendas_por_mes = [0 for _ in range(12)]
+    itens_por_mes = [0 for _ in range(12)]
+    despesas_por_mes = [Decimal('0.00') for _ in range(12)]
+
+    for registro in vendas_agregadas:
+        indice = registro['mes'].month - 1
+        receita_por_mes[indice] = registro['receita'] or Decimal('0.00')
+        vendas_por_mes[indice] = registro['quantidade'] or 0
+
+    for registro in itens_agregados:
+        indice = registro['mes'].month - 1
+        itens_por_mes[indice] = registro['quantidade'] or 0
+
+    for registro in despesas_agregadas:
+        indice = registro['mes'].month - 1
+        despesas_por_mes[indice] = registro['total'] or Decimal('0.00')
+
+    receita_ano = sum(receita_por_mes, Decimal('0.00'))
+    vendas_ano = sum(vendas_por_mes)
+    itens_ano = sum(itens_por_mes)
+    despesas_ano = sum(despesas_por_mes, Decimal('0.00'))
+    resultado_ano = receita_ano - despesas_ano
+    ticket_medio = (
+        (receita_ano / vendas_ano).quantize(Decimal('0.01'))
+        if vendas_ano else Decimal('0.00')
+    )
+
+    vendas_mes_atual_qs = Venda.objects.filter(
+        data_venda__year=hoje.year,
+        data_venda__month=hoje.month,
+    )
+    receita_mes_atual = (
+        vendas_mes_atual_qs.aggregate(total=Sum('total'))['total']
+        or Decimal('0.00')
+    )
+    itens_mes_atual = (
+        ItemVenda.objects
+        .filter(
+            venda__data_venda__year=hoje.year,
+            venda__data_venda__month=hoje.month,
+        )
+        .aggregate(total=Sum('quantidade'))['total']
+        or 0
+    )
+    despesas_mes_atual = (
+        Despesa.objects
+        .filter(data__year=hoje.year, data__month=hoje.month)
+        .aggregate(total=Sum('valor'))['total']
+        or Decimal('0.00')
+    )
+    resumo_mes = {
+        'receita': receita_mes_atual,
+        'vendas': vendas_mes_atual_qs.count(),
+        'itens': itens_mes_atual,
+        'despesas': despesas_mes_atual,
+        'resultado': receita_mes_atual - despesas_mes_atual,
+    }
+
+    valor_estoque_expr = ExpressionWrapper(
+        F('preco') * F('quantidade'),
+        output_field=DecimalField(max_digits=12, decimal_places=2),
+    )
+    produtos = (
+        Produto.objects
+        .select_related('categoria')
+        .annotate(valor_estoque=valor_estoque_expr)
+        .order_by('quantidade', 'nome')
+    )
+    estoque_unidades = (
+        Produto.objects.aggregate(total=Sum('quantidade'))['total'] or 0
+    )
+    estoque_valor = (
+        Produto.objects.aggregate(total=Sum(valor_estoque_expr))['total']
+        or Decimal('0.00')
+    )
+
+    _, _, qtd_total_carrinho = obter_dados_carrinho(request)
+
+    chart_data = {
+        'labels': MESES_ABREVIADOS,
+        'receita': [float(valor) for valor in receita_por_mes],
+        'despesas': [float(valor) for valor in despesas_por_mes],
+        'itens': itens_por_mes,
+        'vendas': vendas_por_mes,
+    }
+
+    return render(request, 'painel_dono.html', {
+        'anos': anos,
+        'ano_selecionado': ano_selecionado,
+        'hoje': hoje,
+        'mes_atual_nome': MESES_COMPLETOS[hoje.month - 1],
+        'resumo_mes': resumo_mes,
+        'receita_ano': receita_ano,
+        'vendas_ano': vendas_ano,
+        'itens_ano': itens_ano,
+        'despesas_ano': despesas_ano,
+        'resultado_ano': resultado_ano,
+        'ticket_medio': ticket_medio,
+        'chart_data': chart_data,
+        'vendas_recentes': (
+            vendas_ano_qs
+            .select_related('pessoa', 'cartao')
+            .order_by('-data_venda')[:8]
+        ),
+        'despesas_recentes': (
+            Despesa.objects
+            .filter(data__year=ano_selecionado)
+            .order_by('-data', '-id')[:6]
+        ),
+        'categorias_despesa': Despesa.CATEGORIAS,
+        'produtos': produtos,
+        'total_produtos': Produto.objects.count(),
+        'estoque_unidades': estoque_unidades,
+        'estoque_valor': estoque_valor,
+        'produtos_baixo': Produto.objects.filter(
+            quantidade__gt=0,
+            quantidade__lte=ESTOQUE_BAIXO,
+        ).count(),
+        'produtos_zerados': Produto.objects.filter(quantidade=0).count(),
+        'estoque_baixo_limite': ESTOQUE_BAIXO,
+        'perfil': obter_perfil_usuario(request.user),
+        'qtd_total_carrinho': qtd_total_carrinho,
     })

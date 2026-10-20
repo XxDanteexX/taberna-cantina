@@ -27,6 +27,21 @@ Acesse `/admin/` para cadastrar categorias, produtos e pessoas. Para que um
 usuário consiga comprar, ele precisa estar vinculado a uma `Pessoa`
 (`Aluno`, `Professor`, `Funcionário` ou `Visitante`).
 
+### Painel do dono
+
+O painel administrativo da cantina fica em `/painel-dono/` e reúne:
+
+- receita, quantidade de vendas, itens vendidos, gastos e ticket médio;
+- gráfico mensal de receita, gastos e itens vendidos, com filtro por ano;
+- vendas recentes;
+- cadastro e histórico de gastos;
+- estoque completo, com destaque para produtos esgotados ou com estoque baixo.
+
+O painel é restrito a usuários com `is_staff` ou `is_superuser` e não aparece
+nas abas de login. Para liberar o acesso, crie um superusuário com
+`python manage.py createsuperuser` (ou use o login de desenvolvimento). Um
+usuário comum que tente abrir a URL recebe uma resposta 403.
+
 ### Dados iniciais
 
 Para criar as categorias e os produtos de exemplo:

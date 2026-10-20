@@ -1,0 +1,821 @@
+{% extends 'base.html' %}
+
+{% block title %}Taberna - Painel do dono{% endblock %}
+
+{% block body_class %}painel-dono-page{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* O painel usa preto/cinza; o vermelho fica restrito ao gráfico. */
+    .painel-dono-page::before {
+        background-color: var(--tb-border-strong);
+    }
+
+    .painel-dono-page .brand-mark {
+        background-color: var(--tb-surface-3);
+        border: 1px solid var(--tb-border-strong);
+        box-shadow: none;
+    }
+
+    .painel-dono-page .brand-name .dot,
+    .painel-dono-page .eyebrow,
+    .painel-dono-page .user-role {
+        color: var(--tb-muted);
+    }
+
+    .painel-dono-page .navbar .nav-action:hover {
+        background-color: var(--tb-surface-2);
+        border-color: var(--tb-border-strong);
+    }
+
+    .painel-dono-page .navbar .nav-action-primary {
+        background-color: var(--tb-surface-3);
+        border-color: var(--tb-border-strong);
+        color: #ffffff;
+    }
+
+    .painel-dono-page .navbar .nav-action-primary:hover {
+        background-color: var(--tb-surface-2);
+        border-color: var(--tb-text);
+        color: #ffffff;
+    }
+
+    .painel-dono-page .navbar .nav-action-danger {
+        color: #d4d4d4;
+        border-color: var(--tb-border);
+    }
+
+    .painel-dono-page .navbar .nav-action-danger:hover {
+        background-color: var(--tb-surface-3);
+        border-color: var(--tb-border-strong);
+        color: #ffffff;
+    }
+
+    .painel-dono-page .btn-outline-light:hover {
+        border-color: var(--tb-border-strong);
+    }
+
+    .painel-dono-page .form-control:focus,
+    .painel-dono-page .form-select:focus {
+        border-color: var(--tb-border-strong) !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .painel-dono-page .card:hover {
+        transform: none;
+        border-color: var(--tb-border);
+        box-shadow: none;
+    }
+
+    .owner-year-label {
+        color: var(--tb-muted);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .owner-year-select {
+        min-width: 96px;
+        width: auto;
+        font-size: 0.82rem;
+    }
+
+    .owner-kpi {
+        height: 100%;
+        padding: 1rem 1.05rem;
+        background-color: var(--tb-surface);
+        border: 1px solid var(--tb-border);
+        border-radius: 12px;
+    }
+
+    .owner-kpi-label {
+        margin-bottom: 0.5rem;
+        color: var(--tb-muted);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .owner-kpi-value {
+        color: #ffffff;
+        font-family: 'Manrope', 'Inter', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+    }
+
+    .owner-kpi-value .currency {
+        color: var(--tb-muted);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .owner-kpi-meta {
+        margin-top: 0.4rem;
+        color: var(--tb-muted);
+        font-size: 0.7rem;
+    }
+
+    .owner-month-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 1.1rem 1.25rem;
+        background-color: var(--tb-surface);
+        border: 1px solid var(--tb-border);
+        border-radius: 12px;
+    }
+
+    .owner-month-strip h2 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .owner-month-strip .owner-kicker {
+        margin-bottom: 0.3rem;
+        color: var(--tb-muted);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .owner-month-metrics {
+        display: flex;
+        align-items: center;
+        gap: 1.6rem;
+        flex-wrap: wrap;
+    }
+
+    .owner-month-metrics span {
+        display: block;
+        color: var(--tb-muted);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+
+    .owner-month-metrics strong {
+        display: block;
+        margin-top: 0.2rem;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .owner-card {
+        background-color: var(--tb-surface) !important;
+        border: 1px solid var(--tb-border) !important;
+        border-radius: 14px;
+    }
+
+    .owner-card-title {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .owner-card-subtitle {
+        margin: 0.25rem 0 0;
+        color: var(--tb-muted);
+        font-size: 0.78rem;
+    }
+
+    .owner-section-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .owner-chart-wrap {
+        position: relative;
+        height: 360px;
+    }
+
+    .owner-chart-note {
+        margin: 0.9rem 0 0;
+        color: var(--tb-muted);
+        font-size: 0.7rem;
+    }
+
+    .owner-table {
+        --bs-table-bg: transparent;
+        --bs-table-color: #e5e5e5;
+        --bs-table-border-color: var(--tb-border);
+        --bs-table-hover-bg: rgba(255, 255, 255, 0.025);
+        --bs-table-hover-color: #ffffff;
+        margin-bottom: 0;
+    }
+
+    .owner-table thead th {
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        color: var(--tb-muted);
+        border-bottom-color: var(--tb-border-strong);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .owner-table tbody td {
+        padding-top: 0.62rem;
+        padding-bottom: 0.62rem;
+        border-color: var(--tb-border);
+        font-size: 0.79rem;
+        vertical-align: middle;
+    }
+
+    .owner-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .owner-table .table-empty {
+        padding: 1rem 0;
+        color: var(--tb-muted);
+        font-size: 0.8rem;
+    }
+
+    .owner-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.22rem 0.5rem;
+        border: 1px solid var(--tb-border);
+        border-radius: 999px;
+        color: #d4d4d4;
+        font-size: 0.62rem;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .owner-pill-warn {
+        background-color: var(--tb-surface-2);
+        border-color: var(--tb-border-strong);
+        color: #ffffff;
+    }
+
+    .owner-pill-muted {
+        color: var(--tb-muted);
+    }
+
+    .owner-row-low {
+        background-color: rgba(255, 255, 255, 0.012);
+    }
+
+    .owner-row-out {
+        opacity: 0.65;
+    }
+
+    .owner-expense-form .form-label {
+        margin-bottom: 0.3rem;
+        color: var(--tb-muted);
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .owner-expense-form .form-control,
+    .owner-expense-form .form-select {
+        min-height: 34px;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .owner-expense-list {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .owner-expense-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--tb-border);
+    }
+
+    .owner-expense-item:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .owner-expense-item strong {
+        display: block;
+        color: #f5f5f5;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .owner-expense-item small {
+        display: block;
+        margin-top: 0.15rem;
+        color: var(--tb-muted);
+        font-size: 0.66rem;
+    }
+
+    .owner-expense-item > span {
+        color: #f5f5f5;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .owner-subtitle {
+        margin: 0 0 0.35rem;
+        color: var(--tb-muted);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .owner-empty {
+        margin: 0;
+        padding: 1rem 0;
+        color: var(--tb-muted);
+        font-size: 0.8rem;
+    }
+
+    .owner-stock-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .owner-stock-table {
+        max-height: 560px;
+        overflow-y: auto;
+    }
+
+    .owner-count {
+        color: var(--tb-muted);
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 767.98px) {
+        .owner-month-strip {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .owner-month-metrics {
+            gap: 1rem 1.35rem;
+        }
+
+        .owner-chart-wrap {
+            height: 300px;
+        }
+
+        .owner-stock-table {
+            max-height: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container pb-5">
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">Gestão</div>
+            <h1 class="page-title">Painel do dono</h1>
+            <p class="page-subtitle">Acompanhe vendas, gastos e estoque da cantina. Área restrita à administração.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <form method="get" class="d-flex align-items-center gap-2">
+                <label for="ano" class="owner-year-label">Ano</label>
+                <select id="ano" name="ano" class="form-select form-select-sm owner-year-select" onchange="this.form.submit()">
+                    {% for ano in anos %}
+                        <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>{{ ano }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <a href="{% url 'cardapio' %}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Cardápio
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Receita no ano</div>
+                <div class="owner-kpi-value"><span class="currency">R$</span> {{ receita_ano|floatformat:2 }}</div>
+                <div class="owner-kpi-meta">{{ ano_selecionado }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Vendas no ano</div>
+                <div class="owner-kpi-value">{{ vendas_ano }}</div>
+                <div class="owner-kpi-meta">pedidos finalizados</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Itens vendidos</div>
+                <div class="owner-kpi-value">{{ itens_ano }}</div>
+                <div class="owner-kpi-meta">unidades no ano</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Gastos no ano</div>
+                <div class="owner-kpi-value"><span class="currency">R$</span> {{ despesas_ano|floatformat:2 }}</div>
+                <div class="owner-kpi-meta">despesas registradas</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Resultado</div>
+                <div class="owner-kpi-value {% if resultado_ano < 0 %}text-danger{% endif %}">
+                    <span class="currency">R$</span> {{ resultado_ano|floatformat:2 }}
+                </div>
+                <div class="owner-kpi-meta">receita menos gastos</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="owner-kpi">
+                <div class="owner-kpi-label">Ticket médio</div>
+                <div class="owner-kpi-value"><span class="currency">R$</span> {{ ticket_medio|floatformat:2 }}</div>
+                <div class="owner-kpi-meta">por venda</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="owner-month-strip mb-4">
+        <div>
+            <div class="owner-kicker">Mês atual</div>
+            <h2>{{ mes_atual_nome }} / {{ hoje.year }}</h2>
+        </div>
+        <div class="owner-month-metrics">
+            <div>
+                <span>Receita</span>
+                <strong>R$ {{ resumo_mes.receita|floatformat:2 }}</strong>
+            </div>
+            <div>
+                <span>Vendas</span>
+                <strong>{{ resumo_mes.vendas }}</strong>
+            </div>
+            <div>
+                <span>Itens</span>
+                <strong>{{ resumo_mes.itens }}</strong>
+            </div>
+            <div>
+                <span>Gastos</span>
+                <strong>R$ {{ resumo_mes.despesas|floatformat:2 }}</strong>
+            </div>
+            <div>
+                <span>Resultado</span>
+                <strong class="{% if resumo_mes.resultado < 0 %}text-danger{% endif %}">R$ {{ resumo_mes.resultado|floatformat:2 }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card owner-card mb-4">
+        <div class="card-body p-4">
+            <div class="owner-section-head">
+                <div>
+                    <h2 class="owner-card-title">Vendas por mês</h2>
+                    <p class="owner-card-subtitle">Receita, gastos e itens vendidos em {{ ano_selecionado }}.</p>
+                </div>
+                <span class="owner-count">Atualizado a cada venda ou gasto</span>
+            </div>
+            <div class="owner-chart-wrap">
+                <canvas id="graficoVendas" role="img" aria-label="Gráfico de vendas, gastos e itens vendidos por mês em {{ ano_selecionado }}"></canvas>
+            </div>
+            <p class="owner-chart-note">As barras vermelhas mostram a receita; as barras cinza mostram os gastos; a linha clara mostra os itens vendidos.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card owner-card h-100">
+                <div class="card-body p-4">
+                    <div class="owner-section-head">
+                        <div>
+                            <h2 class="owner-card-title">Vendas recentes</h2>
+                            <p class="owner-card-subtitle">Últimos pedidos registrados em {{ ano_selecionado }}.</p>
+                        </div>
+                        <span class="owner-count">{{ vendas_ano }} no ano</span>
+                    </div>
+
+                    {% if vendas_recentes %}
+                        <div class="table-responsive">
+                            <table class="table table-dark owner-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Cliente</th>
+                                        <th>Pagamento</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venda in vendas_recentes %}
+                                        <tr>
+                                            <td class="text-secondary">{{ venda.data_venda|date:"d/m H:i" }}</td>
+                                            <td class="fw-semibold">{{ venda.pessoa.nome }}</td>
+                                            <td><span class="owner-pill">{{ venda.get_forma_pagamento_display }}</span></td>
+                                            <td class="text-end fw-semibold">R$ {{ venda.total|floatformat:2 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="owner-empty">Nenhuma venda registrada neste ano.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card owner-card h-100">
+                <div class="card-body p-4">
+                    <div class="owner-section-head">
+                        <div>
+                            <h2 class="owner-card-title">Gastos</h2>
+                            <p class="owner-card-subtitle">Total em {{ ano_selecionado }}: R$ {{ despesas_ano|floatformat:2 }}.</p>
+                        </div>
+                    </div>
+
+                    <form method="post" action="{% url 'painel_dono' %}" class="owner-expense-form mb-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="adicionar_despesa">
+                        <input type="hidden" name="ano" value="{{ ano_selecionado }}">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label for="descricao_despesa" class="form-label">Descrição</label>
+                                <input type="text" class="form-control form-control-sm" id="descricao_despesa" name="descricao" maxlength="150" placeholder="Ex.: compra de refrigerantes" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="valor_despesa" class="form-label">Valor (R$)</label>
+                                <input type="number" class="form-control form-control-sm" id="valor_despesa" name="valor" min="0.01" step="0.01" placeholder="0,00" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="data_despesa" class="form-label">Data</label>
+                                <input type="date" class="form-control form-control-sm" id="data_despesa" name="data" value="{{ hoje|date:'Y-m-d' }}" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="categoria_despesa" class="form-label">Categoria</label>
+                                <select class="form-select form-select-sm" id="categoria_despesa" name="categoria">
+                                    {% for valor, rotulo in categorias_despesa %}
+                                        <option value="{{ valor }}">{{ rotulo }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-outline-light btn-sm w-100 mt-1">
+                                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Adicionar gasto
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="owner-subtitle">Últimos gastos</div>
+                    {% if despesas_recentes %}
+                        <ul class="owner-expense-list">
+                            {% for despesa in despesas_recentes %}
+                                <li class="owner-expense-item">
+                                    <div>
+                                        <strong>{{ despesa.descricao }}</strong>
+                                        <small>{{ despesa.get_categoria_display }} · {{ despesa.data|date:"d/m/Y" }}</small>
+                                    </div>
+                                    <span>R$ {{ despesa.valor|floatformat:2 }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="owner-empty">Nenhum gasto cadastrado em {{ ano_selecionado }}.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card owner-card">
+        <div class="card-body p-4">
+            <div class="owner-section-head">
+                <div>
+                    <h2 class="owner-card-title">Estoque</h2>
+                    <p class="owner-card-subtitle">
+                        {{ total_produtos }} produtos · {{ estoque_unidades }} unidades · R$ {{ estoque_valor|floatformat:2 }} em estoque.
+                    </p>
+                </div>
+                <div class="owner-stock-summary">
+                    <span class="owner-pill">{{ produtos_baixo }} com estoque baixo</span>
+                    <span class="owner-pill owner-pill-muted">{{ produtos_zerados }} esgotados</span>
+                </div>
+            </div>
+
+            <div class="table-responsive owner-stock-table">
+                <table class="table table-dark table-hover owner-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th class="text-end">Preço</th>
+                            <th class="text-end">Estoque</th>
+                            <th class="text-end">Valor em estoque</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produto in produtos %}
+                            <tr class="{% if produto.quantidade == 0 %}owner-row-out{% elif produto.quantidade <= estoque_baixo_limite %}owner-row-low{% endif %}">
+                                <td class="fw-semibold">{{ produto.nome }}</td>
+                                <td class="text-secondary">{{ produto.categoria.nome }}</td>
+                                <td class="text-end">R$ {{ produto.preco|floatformat:2 }}</td>
+                                <td class="text-end">{{ produto.quantidade }}</td>
+                                <td class="text-end">R$ {{ produto.valor_estoque|floatformat:2 }}</td>
+                                <td>
+                                    {% if produto.quantidade == 0 %}
+                                        <span class="owner-pill owner-pill-muted">Esgotado</span>
+                                    {% elif produto.quantidade <= estoque_baixo_limite %}
+                                        <span class="owner-pill owner-pill-warn">Baixo</span>
+                                    {% else %}
+                                        <span class="owner-pill">Disponível</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="table-empty">Nenhum produto cadastrado.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{{ chart_data|json_script:"chart-data" }}
+<script>
+    (function () {
+        const elementoDados = document.getElementById('chart-data');
+        const canvas = document.getElementById('graficoVendas');
+        if (!elementoDados || !canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        const dados = JSON.parse(elementoDados.textContent);
+        const formatarReal = (valor) => Number(valor).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: dados.labels,
+                datasets: [
+                    {
+                        label: 'Receita',
+                        data: dados.receita,
+                        backgroundColor: 'rgba(220, 38, 38, 0.78)',
+                        borderColor: '#dc2626',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        maxBarThickness: 28,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Gastos',
+                        data: dados.despesas,
+                        backgroundColor: 'rgba(115, 115, 115, 0.5)',
+                        borderColor: '#525252',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        maxBarThickness: 28,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'line',
+                        label: 'Itens vendidos',
+                        data: dados.itens,
+                        borderColor: '#d4d4d4',
+                        backgroundColor: 'rgba(212, 212, 212, 0.12)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 4,
+                        pointBackgroundColor: '#d4d4d4',
+                        pointBorderColor: '#0b0b0b',
+                        tension: 0.35,
+                        fill: false,
+                        yAxisID: 'y1',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#a3a3a3',
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            boxHeight: 8,
+                            padding: 18,
+                        },
+                    },
+                    tooltip: {
+                        backgroundColor: '#111111',
+                        titleColor: '#f5f5f5',
+                        bodyColor: '#d4d4d4',
+                        borderColor: '#262626',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: function (context) {
+                                if (context.dataset.yAxisID === 'y') {
+                                    return context.dataset.label + ': R$ ' + formatarReal(context.raw);
+                                }
+                                return context.dataset.label + ': ' + context.raw;
+                            },
+                            afterBody: function (items) {
+                                if (!items.length) {
+                                    return [];
+                                }
+                                return ['Vendas: ' + dados.vendas[items[0].dataIndex]];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(38, 38, 38, 0.55)',
+                        },
+                        ticks: {
+                            color: '#a3a3a3',
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(38, 38, 38, 0.55)',
+                        },
+                        ticks: {
+                            color: '#a3a3a3',
+                            callback: function (value) {
+                                return 'R$ ' + Number(value).toLocaleString('pt-BR');
+                            },
+                        },
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            color: '#737373',
+                            precision: 0,
+                        },
+                    },
+                },
+            },
+        });
+    }());
+</script>
+{% endblock %}

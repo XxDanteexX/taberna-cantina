@@ -6,6 +6,14 @@
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-6">
+            <div class="page-head">
+                <div>
+                    <div class="eyebrow">Conta</div>
+                    <h1 class="page-title">Meus cartões</h1>
+                    <p class="page-subtitle">Cadastre um cartão para agilizar seus próximos pedidos.</p>
+                </div>
+            </div>
+
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
@@ -16,15 +24,15 @@
             {% endif %}
 
             <div class="card bg-dark text-white p-4 mb-4 border-secondary">
-                <h4 class="fw-bold text-warning mb-3">💳 Cadastrar Novo Cartão</h4>
+                <h4 class="fw-bold text-white mb-3"><i class="bi bi-credit-card-2-front text-accent me-2" aria-hidden="true"></i>Cadastrar novo cartão</h4>
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label class="form-label">Nome Impresso no Cartão</label>
+                        <label class="form-label">Nome impresso no cartão</label>
                         <input type="text" name="nome_titular" class="form-control" placeholder="Ex: JOAO S SILVA" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Número do Cartão</label>
+                        <label class="form-label">Número do cartão</label>
                         <input type="text" name="numero" class="form-control" placeholder="0000 0000 0000 0000" maxlength="23" inputmode="numeric" autocomplete="cc-number" required>
                         <div class="form-text text-secondary">
                             Apenas os quatro últimos dígitos serão armazenados.
@@ -38,20 +46,20 @@
                             <input type="text" name="validade" class="form-control" placeholder="12/28" maxlength="5" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Tipo de Cartão</label>
+                            <label class="form-label">Tipo de cartão</label>
                             <select name="tipo" class="form-select" required>
                                 <option value="CREDITO">Crédito</option>
                                 <option value="DEBITO">Débito</option>
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-warning w-100 fw-bold">Salvar Cartão</button>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Salvar cartão</button>
                 </form>
             </div>
 
             <!-- Lista de Cartões Cadastrados -->
             <div class="card bg-dark text-white p-4 border-secondary">
-                <h5 class="fw-bold mb-3">Cartões Salvos</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-wallet2 text-accent me-2" aria-hidden="true"></i>Cartões salvos</h5>
                 {% if cartoes %}
                     <ul class="list-group list-group-flush">
                         {% for c in cartoes %}
@@ -60,14 +68,14 @@
                                     <strong>{{ c.get_tipo_display }}</strong> - {{ c.numero_mascarado }}
                                     <br><small class="text-secondary">{{ c.nome_titular }} ({{ c.validade }}) · {{ c.bandeira }}</small>
                                 </div>
-                                <span class="badge bg-success">Salvo</span>
+                                <span class="badge bg-success"><i class="bi bi-check2 me-1" aria-hidden="true"></i>Salvo</span>
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
                     <p class="text-muted m-0">Nenhum cartão cadastrado ainda.</p>
                 {% endif %}
-                <a href="{% url 'cardapio' %}" class="btn btn-outline-light mt-3">Voltar ao Cardápio</a>
+                <a href="{% url 'cardapio' %}" class="btn btn-outline-light mt-3"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar ao cardápio</a>
             </div>
         </div>
     </div>

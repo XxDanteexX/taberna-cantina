@@ -9,8 +9,15 @@
 {% block content %}
 <div class="login-card p-4 my-5">
     <div class="text-center mb-4">
-        <h2 class="fw-bold">🍔 Taberna</h2>
-        <p class="text-secondary small m-0">Selecione quem você é para continuar</p>
+        <div class="login-brand justify-content-center">
+            <span class="brand-mark">T</span>
+            <span class="brand-copy text-start">
+                <span class="brand-name">Taberna<span class="dot">.</span></span>
+                <span class="brand-sub">Cantina</span>
+            </span>
+        </div>
+        <h1 class="login-title">Acesse sua conta</h1>
+        <p class="login-subtitle">Selecione seu perfil para continuar.</p>
     </div>
 
     {% if messages %}
@@ -24,16 +31,16 @@
     <!-- Passo 1: Seleção de Perfil (Abas) -->
     <ul class="nav nav-pills nav-justified mb-4" id="perfilTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="aluno-tab" data-bs-toggle="pill" data-bs-target="#tab-aluno" type="button">🎓 Aluno</button>
+            <button class="nav-link active" id="aluno-tab" data-bs-toggle="pill" data-bs-target="#tab-aluno" type="button"><i class="bi bi-mortarboard me-1" aria-hidden="true"></i>Aluno</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="prof-tab" data-bs-toggle="pill" data-bs-target="#tab-prof" type="button">👨‍🏫 Professor</button>
+            <button class="nav-link" id="prof-tab" data-bs-toggle="pill" data-bs-target="#tab-prof" type="button"><i class="bi bi-person-video3 me-1" aria-hidden="true"></i>Professor</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="func-tab" data-bs-toggle="pill" data-bs-target="#tab-func" type="button">💼 Funcionário</button>
+            <button class="nav-link" id="func-tab" data-bs-toggle="pill" data-bs-target="#tab-func" type="button"><i class="bi bi-briefcase me-1" aria-hidden="true"></i>Funcionário</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="vis-tab" data-bs-toggle="pill" data-bs-target="#tab-vis" type="button">👀 Visitante</button>
+            <button class="nav-link" id="vis-tab" data-bs-toggle="pill" data-bs-target="#tab-vis" type="button"><i class="bi bi-eye me-1" aria-hidden="true"></i>Visitante</button>
         </li>
     </ul>
 
@@ -58,7 +65,7 @@
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remAluno">
                     <label class="form-check-label small text-secondary" for="remAluno">Lembrar de mim</label>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Entrar</button>
             </form>
         </div>
 
@@ -80,7 +87,7 @@
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remProf">
                     <label class="form-check-label small text-secondary" for="remProf">Lembrar de mim</label>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Entrar</button>
             </form>
         </div>
 
@@ -102,7 +109,7 @@
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remFunc">
                     <label class="form-check-label small text-secondary" for="remFunc">Lembrar de mim</label>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Entrar</button>
             </form>
         </div>
 
@@ -124,7 +131,7 @@
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remVis">
                     <label class="form-check-label small text-secondary" for="remVis">Lembrar de mim</label>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Acessar Cardápio</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Entrar</button>
             </form>
         </div>
 

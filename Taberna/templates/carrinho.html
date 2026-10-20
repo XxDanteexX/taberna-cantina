@@ -4,7 +4,13 @@
 
 {% block content %}
 <div class="container my-5">
-    <h2 class="mb-4">Meu Carrinho</h2>
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">Pedido</div>
+            <h1 class="page-title">Meu carrinho</h1>
+            <p class="page-subtitle">Revise os itens e escolha a forma de pagamento.</p>
+        </div>
+    </div>
 
     {% if messages %}
         <div class="row justify-content-center mb-3">
@@ -21,12 +27,12 @@
 
     {% if itens_carrinho %}
         <div class="table-responsive mb-4">
-            <table class="table table-striped table-dark align-middle">
+            <table class="table table-dark align-middle cart-table">
                 <thead>
                     <tr>
                         <th>Produto</th>
                         <th>Quantidade</th>
-                        <th>Preço Unitário</th>
+                        <th>Preço unitário</th>
                         <th>Subtotal</th>
                         <th>Ações</th>
                     </tr>
@@ -34,14 +40,14 @@
                 <tbody>
                     {% for item in itens_carrinho %}
                         <tr>
-                            <td>{{ item.produto.nome }}</td>
-                            <td>{{ item.quantidade }}</td>
+                            <td class="fw-semibold">{{ item.produto.nome }}</td>
+                            <td><span class="qty-badge">{{ item.quantidade }}</span></td>
                             <td>R$ {{ item.produto.preco }}</td>
                             <td>R$ {{ item.subtotal }}</td>
                             <td>
                                 <form action="{% url 'remover_do_carrinho' item.produto.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Remover</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Remover</button>
                                 </form>
                             </td>
                         </tr>
@@ -52,37 +58,37 @@
 
         <div class="row justify-content-end">
             <div class="col-md-6 col-lg-5">
-                <div class="card shadow-sm p-4">
-                    <h4 class="mb-3">Resumo do Pedido</h4>
-                    <div class="d-flex justify-content-between mb-3 fs-5 fw-bold">
-                        <span>Total:</span>
-                        <span class="text-success">R$ {{ total_carrinho }}</span>
+                <div class="card shadow-sm p-4 summary-card">
+                    <h4 class="mb-3">Resumo do pedido</h4>
+                    <div class="cart-total-row">
+                        <span>Total</span>
+                        <strong>R$ {{ total_carrinho }}</strong>
                     </div>
 
                     <form action="{% url 'finalizar_compra' %}" method="POST">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="forma_pagamento_carrinho" class="form-label fw-bold">Forma de Pagamento:</label>
+                            <label for="forma_pagamento_carrinho" class="form-label fw-bold">Forma de pagamento</label>
                             <select name="forma_pagamento" id="forma_pagamento_carrinho" class="form-select" onchange="toggleCartoesCarrinho()" required>
-                                <option value="PIX">PIX</option>
+                                <option value="PIX">Pix</option>
                                 <option value="DINHEIRO">Dinheiro</option>
-                                <option value="CARTAO">Cartão no Balcão (Maquininha)</option>
+                                <option value="CARTAO">Cartão no balcão (maquininha)</option>
                                 {% if cartoes %}
-                                    <option value="CARTAO_SALVO">💳 Usar Cartão Cadastrado</option>
+                                    <option value="CARTAO_SALVO">Usar cartão cadastrado</option>
                                 {% endif %}
                                 {% if pode_fiado %}
-                                    <option value="FIADO">Conta Mensal / Prazo Estendido (30 dias)</option>
+                                    <option value="FIADO">Conta mensal / prazo estendido (30 dias)</option>
                                 {% endif %}
                             </select>
                             <div class="form-text text-secondary">
-                                “Cartão no Balcão” é o pagamento presencial na maquininha e não exige cadastro.
-                                {% if cartoes %}Para usar um cartão salvo, escolha “Usar Cartão Cadastrado”.{% endif %}
+                                “Cartão no balcão” é o pagamento presencial na maquininha e não exige cadastro.
+                                {% if cartoes %}Para usar um cartão salvo, escolha “Usar cartão cadastrado”.{% endif %}
                             </div>
                         </div>
 
                         {% if cartoes %}
                         <div class="mb-3 d-none" id="container_cartao_carrinho">
-                            <label for="cartao_id" class="form-label fw-bold">Selecione o Cartão Cadastrado:</label>
+                            <label for="cartao_id" class="form-label fw-bold">Selecione o cartão cadastrado</label>
                             <select name="cartao_id" id="cartao_id" class="form-select">
                                 {% for c in cartoes %}
                                     <option value="{{ c.id }}">{{ c.get_tipo_display }} - {{ c.numero_mascarado }} ({{ c.nome_titular }})</option>
@@ -91,15 +97,15 @@
                         </div>
                         {% endif %}
 
-                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Finalizar Compra</button>
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Finalizar compra</button>
                     </form>
 
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <a href="{% url 'cardapio' %}" class="btn btn-outline-light btn-sm">Continuar comprando</a>
+                    <div class="d-flex justify-content-between align-items-center mt-3 gap-2">
+                        <a href="{% url 'cardapio' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Continuar comprando</a>
                         <form action="{% url 'limpar_carrinho' %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="origem" value="carrinho">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Esvaziar carrinho</button>
+                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3 me-1" aria-hidden="true"></i>Esvaziar</button>
                         </form>
                     </div>
                 </div>
@@ -107,8 +113,10 @@
         </div>
     {% else %}
         <div class="text-center py-5">
-            <h4>Seu carrinho está vazio.</h4>
-            <a href="{% url 'cardapio' %}" class="btn btn-primary mt-3">Ver Cardápio</a>
+            <span class="empty-icon"><i class="bi bi-cart3" aria-hidden="true"></i></span>
+            <h4 class="fw-bold">Seu carrinho está vazio</h4>
+            <p class="text-secondary mb-3">Explore o cardápio e adicione seus favoritos.</p>
+            <a href="{% url 'cardapio' %}" class="btn btn-primary"><i class="bi bi-grid me-1" aria-hidden="true"></i>Ver cardápio</a>
         </div>
     {% endif %}
 </div>

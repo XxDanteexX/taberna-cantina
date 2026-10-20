@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 # 1. CATEGORIA
@@ -221,3 +222,42 @@ class ContaReceber(models.Model):
     def __str__(self):
         status = 'PAGO' if self.pago else 'PENDENTE'
         return f'Conta #{self.id} - {self.venda.pessoa.nome} [{status}]'
+
+
+# 9. DESPESA (Gastos operacionais da cantina)
+class Despesa(models.Model):
+    CATEGORIAS = [
+        ('INSUMOS', 'Insumos'),
+        ('EQUIPAMENTOS', 'Equipamentos'),
+        ('MANUTENCAO', 'Manutenção'),
+        ('TRANSPORTE', 'Transporte'),
+        ('OUTROS', 'Outros'),
+    ]
+
+    descricao = models.CharField(max_length=150)
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIAS,
+        default='INSUMOS',
+    )
+    valor = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    data = models.DateField(default=timezone.localdate)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data', '-id']
+        verbose_name = 'Despesa'
+        verbose_name_plural = 'Despesas'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(valor__gte=0),
+                name='despesa_valor_nao_negativo',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.descricao} - R$ {self.valor}'

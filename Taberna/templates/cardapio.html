@@ -18,64 +18,74 @@
         </div>
     {% endif %}
 
-    <div class="row mb-3">
-        <div class="col text-center">
-            <h2 class="fw-bold">Cardápio da Cantina</h2>
-            <p class="text-secondary">Navegue pelas categorias ou procure pelo seu item favorito | Perfil: <strong class="text-warning">{{ perfil }}</strong></p>
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">Cardápio</div>
+            <h1 class="page-title">Monte seu pedido</h1>
+            <p class="page-subtitle">Escolha os itens abaixo e retire no balcão. Perfil: <span class="text-accent">{{ perfil }}</span>.</p>
         </div>
+        <div class="status-pill"><i class="bi bi-shop" aria-hidden="true"></i> Retirada no balcão</div>
     </div>
 
     <!-- Seção do Carrinho de Compras (SEMPRE FIXA NA PÁGINA) -->
     <div class="row justify-content-center mb-4" id="secao-carrinho">
-        <div class="col-md-10">
-            <div class="card bg-dark text-white border-warning p-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="m-0 fw-bold text-warning">🛒 Seu Carrinho</h5>
-                    {% if itens_carrinho %}
+        <div class="col-lg-10">
+            <div class="card cart-panel p-3 {% if itens_carrinho %}cart-panel-filled{% else %}cart-panel-empty{% endif %}">
+                {% if itens_carrinho %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="cart-icon"><i class="bi bi-cart3" aria-hidden="true"></i></span>
+                            <div>
+                                <h5 class="m-0 fw-bold">Seu carrinho</h5>
+                                <span class="text-secondary small">{{ qtd_total_carrinho }} item(ns) no pedido</span>
+                            </div>
+                        </div>
                         <form action="{% url 'limpar_carrinho' %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="origem" value="cardapio">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Esvaziar Carrinho</button>
+                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3 me-1" aria-hidden="true"></i>Esvaziar</button>
                         </form>
-                    {% endif %}
-                </div>
+                    </div>
 
-                {% if itens_carrinho %}
                     <ul class="list-group list-group-flush mb-3">
                         {% for item in itens_carrinho %}
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
-                                <div>
-                                    <strong>{{ item.produto.nome }}</strong> (x{{ item.quantidade }})
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="cart-item-qty">{{ item.quantidade }}x</span>
+                                    <div>
+                                        <strong>{{ item.produto.nome }}</strong>
+                                        <span class="d-block text-secondary small">R$ {{ item.produto.preco }} cada</span>
+                                    </div>
                                 </div>
-                                <span>R$ {{ item.subtotal }}</span>
+                                <span class="fw-semibold">R$ {{ item.subtotal }}</span>
                             </li>
                         {% endfor %}
                     </ul>
-                    
+
                     <form action="{% url 'finalizar_compra' %}" method="POST" class="row g-3 align-items-center">
                         {% csrf_token %}
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Forma de Pagamento:</label>
+                            <label class="form-label fw-bold">Forma de pagamento</label>
                             <select name="forma_pagamento" id="forma_pagamento_select" class="form-select" onchange="toggleCartoesCadastrados()" required>
                                 <option value="DINHEIRO">Dinheiro</option>
                                 <option value="PIX">Pix</option>
-                                <option value="CARTAO">Cartão no Balcão (Maquininha)</option>
+                                <option value="CARTAO">Cartão no balcão (maquininha)</option>
                                 {% if cartoes %}
-                                    <option value="CARTAO_SALVO">💳 Usar Cartão Cadastrado</option>
+                                    <option value="CARTAO_SALVO">Usar cartão cadastrado</option>
                                 {% endif %}
                                 {% if pode_fiado %}
-                                    <option value="FIADO">Conta Mensal / Prazo Estendido (30 dias)</option>
+                                    <option value="FIADO">Conta mensal / prazo estendido (30 dias)</option>
                                 {% endif %}
                             </select>
                             <div class="form-text text-secondary">
-                                “Cartão no Balcão” é o pagamento presencial na maquininha e não exige cadastro.
-                                {% if cartoes %}Para usar um cartão salvo, escolha “Usar Cartão Cadastrado”.{% endif %}
+                                “Cartão no balcão” é o pagamento presencial na maquininha e não exige cadastro.
+                                {% if cartoes %}Para usar um cartão salvo, escolha “Usar cartão cadastrado”.{% endif %}
                             </div>
                         </div>
 
                         {% if cartoes %}
                         <div class="col-md-4 d-none" id="container_cartao_select">
-                            <label class="form-label fw-bold">Selecione o Cartão:</label>
+                            <label class="form-label fw-bold">Selecione o cartão</label>
                             <select name="cartao_id" class="form-select">
                                 {% for c in cartoes %}
                                     <option value="{{ c.id }}">{{ c.get_tipo_display }} - {{ c.numero_mascarado }} ({{ c.nome_titular }})</option>
@@ -84,14 +94,21 @@
                         </div>
                         {% endif %}
 
-                        <div class="col-md-6 text-end ms-auto">
-                            <h4 class="fw-bold text-success mb-2">Total: R$ {{ total_carrinho }}</h4>
-                            <button type="submit" class="btn btn-success fw-bold px-4">Finalizar Pedido</button>
+                        <div class="col-md-5 ms-auto">
+                            <div class="cart-total-row">
+                                <span>Total</span>
+                                <strong>R$ {{ total_carrinho }}</strong>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 fw-bold"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Finalizar pedido</button>
                         </div>
                     </form>
                 {% else %}
-                    <div class="text-center py-3">
-                        <p class="text-secondary m-0">Seu carrinho está vazio no momento. Adicione produtos abaixo para realizar o pedido.</p>
+                    <div class="cart-empty-content">
+                        <span class="cart-icon"><i class="bi bi-cart3" aria-hidden="true"></i></span>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Seu carrinho está vazio</h6>
+                            <p class="text-secondary small mb-0">Adicione produtos abaixo para começar seu pedido.</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -100,8 +117,11 @@
 
     <!-- Campo de Busca Instantânea -->
     <div class="row justify-content-center mb-4">
-        <div class="col-md-6 col-lg-5">
-            <input type="text" id="campoBusca" class="form-control search-input py-2 rounded-pill px-3" placeholder="🔍 Digite o nome do produto..." oninput="filtrarProdutos()">
+        <div class="col-md-7 col-lg-5">
+            <div class="search-wrap">
+                <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                <input type="text" id="campoBusca" class="form-control search-input py-2 rounded-pill ps-5" placeholder="Buscar no cardápio..." oninput="filtrarProdutos()">
+            </div>
         </div>
     </div>
 
@@ -109,7 +129,7 @@
     <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="pills-todos-tab" data-bs-toggle="pill" data-bs-target="#pills-todos" type="button" role="tab">
-                Todos os Itens
+                Todos os itens
             </button>
         </li>
         {% for cat in categorias %}
@@ -127,40 +147,46 @@
         <!-- ABA: Todos os Itens -->
         <div class="tab-pane fade show active" id="pills-todos" role="tabpanel">
             <div class="p-3 mb-4 category-info-box">
-                <h5 class="fw-bold text-white mb-1">🔥 Visão Geral & Queridinhos da Galera</h5>
-                <p class="text-secondary m-0">Exibindo todos os produtos da cantina com destaque nos mais vendidos.</p>
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <div class="eyebrow mb-1">Destaques</div>
+                        <h5 class="fw-bold text-white mb-1">Visão geral</h5>
+                        <p class="text-secondary m-0 small">Todos os produtos da cantina, com destaque para os mais pedidos.</p>
+                    </div>
+                    <i class="bi bi-stars section-icon" aria-hidden="true"></i>
+                </div>
             </div>
 
             <div class="row row-cols-1 row-cols-md-3 g-4 container-produtos">
                 {% for produto in produtos %}
                     <div class="col item-produto" data-nome="{{ produto.nome|lower }}">
-                        <div class="card h-100 p-3 {% if produto.mais_vendido %}card-popular{% endif %}">
+                        <div class="card product-card h-100 p-3 {% if produto.mais_vendido %}card-popular{% endif %}">
                             <div class="card-body d-flex flex-column justify-content-between">
                                 <div>
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title fw-bold m-0 text-white nome-produto">
-                                            {{ produto.nome }}
-                                            {% if produto.mais_vendido %}
-                                                <span class="badge bg-warning text-dark ms-1" style="font-size: 0.75rem;">🔥 Popular</span>
-                                            {% endif %}
-                                        </h5>
+                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                                         <span class="badge badge-categoria px-2 py-1 rounded-pill">
                                             {{ produto.categoria.nome }}
                                         </span>
+                                        {% if produto.mais_vendido %}
+                                            <span class="badge bg-warning"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>Popular</span>
+                                        {% endif %}
                                     </div>
-                                    <p class="card-text text-secondary small">
+                                    <h5 class="card-title fw-bold m-0 text-white nome-produto product-title">
+                                        {{ produto.nome }}
+                                    </h5>
+                                    <p class="card-text text-secondary small product-description">
                                         {{ produto.descricao|default:"Sem descrição cadastrada." }}
                                     </p>
                                 </div>
                                 <div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3">
-                                        <span class="price-tag">R$ {{ produto.preco }}</span>
-                                        <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3 product-meta">
+                                        <span class="price-tag"><small>R$</small> {{ produto.preco }}</span>
+                                        <span class="stock-tag"><span class="stock-dot"></span>{{ produto.quantidade }} em estoque</span>
                                     </div>
                                     <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary w-100 fw-bold" {% if produto.quantidade <= 0 %}disabled{% endif %}>
-                                            {% if produto.quantidade > 0 %}Adicionar ao Carrinho{% else %}Esgotado{% endif %}
+                                        <button type="submit" class="btn btn-outline-light w-100 fw-bold product-add" {% if produto.quantidade <= 0 %}disabled{% endif %}>
+                                            {% if produto.quantidade > 0 %}<i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Adicionar{% else %}Esgotado{% endif %}
                                         </button>
                                     </form>
                                 </div>
@@ -184,43 +210,49 @@
             <div class="tab-pane fade" id="pills-cat-{{ cat.id }}" role="tabpanel">
                 
                 <div class="p-3 mb-4 category-info-box">
-                    <h5 class="fw-bold text-white mb-1">📌 Sobre {{ cat.nome }}</h5>
-                    <p class="text-secondary m-0">
-                        {{ cat.descricao|default:"Confira os itens selecionados desta categoria." }}
-                    </p>
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <div class="eyebrow mb-1">Categoria</div>
+                            <h5 class="fw-bold text-white mb-1">Sobre {{ cat.nome }}</h5>
+                            <p class="text-secondary m-0 small">
+                                {{ cat.descricao|default:"Confira os itens selecionados desta categoria." }}
+                            </p>
+                        </div>
+                        <i class="bi bi-tag section-icon" aria-hidden="true"></i>
+                    </div>
                 </div>
 
                 <div class="row row-cols-1 row-cols-md-3 g-4 container-produtos">
                     {% for produto in produtos %}
                         {% if produto.categoria.id == cat.id %}
                             <div class="col item-produto" data-nome="{{ produto.nome|lower }}">
-                                <div class="card h-100 p-3 {% if produto.mais_vendido %}card-popular{% endif %}">
+                                <div class="card product-card h-100 p-3 {% if produto.mais_vendido %}card-popular{% endif %}">
                                     <div class="card-body d-flex flex-column justify-content-between">
                                         <div>
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h5 class="card-title fw-bold m-0 text-white nome-produto">
-                                                    {{ produto.nome }}
-                                                    {% if produto.mais_vendido %}
-                                                        <span class="badge bg-warning text-dark ms-1" style="font-size: 0.75rem;">🔥 Popular</span>
-                                                    {% endif %}
-                                                </h5>
+                                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                                                 <span class="badge badge-categoria px-2 py-1 rounded-pill">
                                                     {{ produto.categoria.nome }}
                                                 </span>
+                                                {% if produto.mais_vendido %}
+                                                    <span class="badge bg-warning"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>Popular</span>
+                                                {% endif %}
                                             </div>
-                                            <p class="card-text text-secondary small">
+                                            <h5 class="card-title fw-bold m-0 text-white nome-produto product-title">
+                                                {{ produto.nome }}
+                                            </h5>
+                                            <p class="card-text text-secondary small product-description">
                                                 {{ produto.descricao|default:"Sem descrição cadastrada." }}
                                             </p>
                                         </div>
                                         <div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3">
-                                                <span class="price-tag">R$ {{ produto.preco }}</span>
-                                                <span class="stock-tag">Estoque: <strong>{{ produto.quantidade }}</strong></span>
+                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle mb-3 product-meta">
+                                                <span class="price-tag"><small>R$</small> {{ produto.preco }}</span>
+                                                <span class="stock-tag"><span class="stock-dot"></span>{{ produto.quantidade }} em estoque</span>
                                             </div>
                                             <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-primary w-100 fw-bold" {% if produto.quantidade <= 0 %}disabled{% endif %}>
-                                                    {% if produto.quantidade > 0 %}Adicionar ao Carrinho{% else %}Esgotado{% endif %}
+                                                <button type="submit" class="btn btn-outline-light w-100 fw-bold product-add" {% if produto.quantidade <= 0 %}disabled{% endif %}>
+                                                    {% if produto.quantidade > 0 %}<i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Adicionar{% else %}Esgotado{% endif %}
                                                 </button>
                                             </form>
                                         </div>

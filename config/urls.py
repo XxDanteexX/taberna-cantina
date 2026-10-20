@@ -27,6 +27,7 @@ from Taberna.views import (
     limpar_carrinho, 
     finalizar_compra,
     cadastrar_cartao,
+    painel_dono,
     dev_login,
 )
 
@@ -45,4 +46,5 @@ urlpatterns = [
     path('carrinho/limpar/', limpar_carrinho, name='limpar_carrinho'),
     path('carrinho/finalizar/', finalizar_compra, name='finalizar_compra'),
     path('cartoes/', cadastrar_cartao, name='cadastrar_cartao'),
+    path('painel-dono/', painel_dono, name='painel_dono'),
 ]

@@ -22,6 +22,7 @@ from .models import (
     Cartao,
     Categoria,
     ContaReceber,
+    Despesa,
     ItemVenda,
     Pessoa,
     Professor,
@@ -573,3 +574,130 @@ class DevLoginTests(TestCase):
     def test_comando_recusa_debug_false(self):
         with self.assertRaises(CommandError):
             call_command('dev_login', stdout=StringIO(), stderr=StringIO())
+
+
+class PainelDonoTests(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user(
+            username='dono',
+            password='SenhaForte!123',
+            email='dono@example.com',
+            is_staff=True,
+        )
+        self.cliente = User.objects.create_user(
+            username='cliente_painel',
+            password='SenhaForte!123',
+            email='cliente_painel@example.com',
+        )
+        self.pessoa = criar_pessoa(self.cliente, '88', 'cliente_painel@example.com')
+        self.categoria = Categoria.objects.create(nome='Salgados do painel')
+        self.produto = Produto.objects.create(
+            nome='Coxinha do painel',
+            preco=Decimal('5.00'),
+            quantidade=10,
+            categoria=self.categoria,
+        )
+
+    def test_anonimo_redireciona_para_login(self):
+        response = self.client.get(reverse('painel_dono'))
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('painel_dono')}",
+        )
+
+    def test_usuario_comum_recebe_403(self):
+        self.client.force_login(self.cliente)
+        response = self.client.get(reverse('painel_dono'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_staff_acessa_painel(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse('painel_dono'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Painel do dono')
+        self.assertContains(response, 'Estoque')
+
+    def test_link_do_painel_nao_aparece_para_usuario_comum(self):
+        self.client.force_login(self.cliente)
+        response = self.client.get(reverse('cardapio'))
+        self.assertNotContains(response, reverse('painel_dono'))
+
+    def test_link_do_painel_aparece_para_staff(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse('cardapio'))
+        self.assertContains(response, reverse('painel_dono'))
+
+    def test_painel_agrega_venda_e_despesa_do_mes(self):
+        venda = Venda.objects.create(
+            pessoa=self.pessoa,
+            total=Decimal('10.00'),
+            forma_pagamento='PIX',
+        )
+        ItemVenda.objects.create(
+            venda=venda,
+            produto=self.produto,
+            quantidade=2,
+            preco_unitario=Decimal('5.00'),
+        )
+        Despesa.objects.create(
+            descricao='Insumos do painel',
+            categoria='INSUMOS',
+            valor=Decimal('3.00'),
+            data=timezone.localdate(),
+        )
+
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse('painel_dono'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['receita_ano'], Decimal('10.00'))
+        self.assertEqual(response.context['vendas_ano'], 1)
+        self.assertEqual(response.context['itens_ano'], 2)
+        self.assertEqual(response.context['despesas_ano'], Decimal('3.00'))
+        self.assertEqual(response.context['resultado_ano'], Decimal('7.00'))
+
+        indice_mes = timezone.localdate().month - 1
+        self.assertEqual(response.context['chart_data']['receita'][indice_mes], 10.0)
+        self.assertEqual(response.context['chart_data']['despesas'][indice_mes], 3.0)
+        self.assertEqual(response.context['chart_data']['itens'][indice_mes], 2)
+        self.assertEqual(response.context['chart_data']['vendas'][indice_mes], 1)
+
+    def test_staff_adiciona_despesa(self):
+        self.client.force_login(self.staff)
+        hoje = timezone.localdate()
+        response = self.client.post(reverse('painel_dono'), {
+            'acao': 'adicionar_despesa',
+            'ano': str(hoje.year),
+            'descricao': 'Compra de copos',
+            'valor': '12,50',
+            'data': hoje.isoformat(),
+            'categoria': 'INSUMOS',
+        })
+
+        self.assertRedirects(
+            response,
+            f"{reverse('painel_dono')}?ano={hoje.year}",
+        )
+        despesa = Despesa.objects.get(descricao='Compra de copos')
+        self.assertEqual(despesa.valor, Decimal('12.50'))
+        self.assertEqual(despesa.data, hoje)
+
+    def test_usuario_comum_nao_adiciona_despesa(self):
+        self.client.force_login(self.cliente)
+        hoje = timezone.localdate()
+        response = self.client.post(reverse('painel_dono'), {
+            'acao': 'adicionar_despesa',
+            'ano': str(hoje.year),
+            'descricao': 'Tentativa indevida',
+            'valor': '10,00',
+            'data': hoje.isoformat(),
+            'categoria': 'OUTROS',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Despesa.objects.filter(descricao='Tentativa indevida').exists())
+
+    def test_login_nao_expoe_aba_do_dono(self):
+        response = self.client.get(reverse('login'))
+        self.assertNotContains(response, reverse('painel_dono'))
+        self.assertNotContains(response, 'Painel do dono')

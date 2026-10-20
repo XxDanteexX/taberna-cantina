@@ -5,6 +5,7 @@ from .models import (
     Cartao,
     Categoria,
     ContaReceber,
+    Despesa,
     Funcionario,
     ItemVenda,
     Pessoa,
@@ -61,6 +62,14 @@ class ContaReceberAdmin(admin.ModelAdmin):
     list_filter = ('pago', 'data_vencimento')
     search_fields = ('venda__pessoa__nome', 'venda__pessoa__cpf')
     date_hierarchy = 'data_vencimento'
+
+
+class DespesaAdmin(admin.ModelAdmin):
+    list_display = ('data', 'descricao', 'categoria', 'valor')
+    list_filter = ('categoria', 'data')
+    search_fields = ('descricao',)
+    date_hierarchy = 'data'
+    ordering = ('-data', '-id')
 
 
 class CartaoAdmin(admin.ModelAdmin):
@@ -126,3 +135,4 @@ admin.site.register(Visitante, VisitanteAdmin)
 admin.site.register(Cartao, CartaoAdmin)
 admin.site.register(Venda, VendaAdmin)
 admin.site.register(ContaReceber, ContaReceberAdmin)
+admin.site.register(Despesa, DespesaAdmin)
