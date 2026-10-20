@@ -171,6 +171,25 @@ DICAS
   ou troque para Command Prompt.
 
 ============================================================
+PARA ENVIAR ALTERACOES PARA O GITHUB
+============================================================
+Depois de editar o projeto, rode na pasta do projeto:
+
+--- INICIO ---
+REM Adiciona todas as alteracoes
+git add .
+
+REM Cria o commit com uma descricao
+git commit -m "Descricao da alteracao"
+
+REM Envia para o GitHub
+git push
+--- FIM ---
+
+Se o Git pedir login, conclua antes.
+A pasta local ja esta conectada ao repositorio.
+
+============================================================
 NO FINAL DA AULA
 ============================================================
 1. Pare o servidor com Ctrl + C.

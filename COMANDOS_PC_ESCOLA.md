@@ -206,6 +206,26 @@ O esperado é terminar com **OK** e **36 testes passando**.
 
 ---
 
+## Para enviar alterações para o GitHub
+
+Depois de editar o projeto, rode na pasta do projeto:
+
+```bat
+REM Adiciona todas as alterações
+git add .
+
+REM Cria o commit com uma descrição
+git commit -m "Descrição da alteração"
+
+REM Envia para o GitHub
+git push
+```
+
+> Se o Git pedir login, conclua antes.  
+> A pasta local já está conectada ao repositório.
+
+---
+
 ## No final da aula
 
 1. Pare o servidor com **Ctrl + C**.
